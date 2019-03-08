@@ -19,8 +19,8 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
-module FixedPriorityArbiter #(parameter size=8)
+`include"defines.vh"
+module FixedPriorityArbiter #(parameter size=`NPORT)
 (
 input [size-1:0] requests,
 input enable,
@@ -31,23 +31,25 @@ output reg [$clog2(size)-1:0] selectedOutput
    
 reg auxDone;
 reg [$clog2(size)-1:0]auxSelect =0;
-reg i;
+integer i;
     always@(requests,enable)
-    begin
-    auxDone=0;
+        begin
+        auxDone=0;
+        auxSelect =0;
         if(enable==1)
             begin                
-                for (i = 0; i < requests; i = i +1) 
+            for (i = 0; i < size; i = i +1) 
                 begin
-                    if(requests[i]==1)
-                        begin
-                            auxSelect<=i;
-                            auxDone<=1;
-                        end
+                if(requests[i]==1)
+                    begin
+                    auxSelect=i;
+                    auxDone=1;
+                    i=size;
+                    end
                 end            
             end
-    isOutputSelected=auxDone;
-    selectedOutput= auxSelect;  
-    end
+        isOutputSelected= auxDone;
+        selectedOutput= auxSelect;  
+        end
      
 endmodule
