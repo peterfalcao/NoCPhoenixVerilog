@@ -7,8 +7,8 @@
 `define NROT 4
 `define EAST 0
 `define WEST 1
-`define SOUTH 2
-`define NORTH 3
+`define NORTH 2
+`define SOUTH 3
 `define LOCAL 4
 //--------------------------------------------------------
 //-- CONSTANT DEPENDENTE DA LARGURA DE BANDA DA REDE
@@ -28,7 +28,7 @@
 //fim tipos de routercontrol
 //SWITCHCONTROL
 //STATE
-`define STATE 3
+`define STATE 5
 `define S0 0
 `define S1 1
 `define S2 2
