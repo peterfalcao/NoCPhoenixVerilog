@@ -1,4 +1,5 @@
-module fifo_buffer #(parameter WIDTH=8, DEPTH=8)(
+`include "defines.vh"
+module fifo_buffer #(parameter WIDTH=`TAM_FLIT, DEPTH=`TAM_BUFFER)(
 input clock, reset,push,pull,
 input [WIDTH-1:0]tail,
 output [WIDTH-1:0] head,

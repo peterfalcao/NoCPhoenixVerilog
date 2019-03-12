@@ -1,22 +1,22 @@
-module phoenix_buffer #(parameter TAM_BUFFER=8, DEPTH=8)(
+`include "defines.vh"
+module phoenix_buffer #(parameter TAM_BUFFER=`TAM_FLIT, DEPTH=`TAM_BUFFER)(
 input clock, reset,rx, clock_rx,ack_h,data_ack,
-input [TAM_FLIT-1:0] data_in,
+input [`TAM_FLIT-1:0] data_in,
 output credit_o,h,data_av,sender,
-output [TAM_FLIT-1:0] data);
+output [`TAM_FLIT-1:0] data);
 
 
 localparam REQ_ROUTING=0;
 localparam SEND_DATA=1;
-localparam TAM_FLIT=8;
 
 wire pull, has_data,has_data_and_sending;
-wire [TAM_FLIT-1:0] bufferhead;
+wire [`TAM_FLIT-1:0] bufferhead;
 wire [$clog2(DEPTH):0]counter;
 reg sending,sent,ack_aux;
 reg next_state, current_state;
 integer flit_index, counter_flit;
 
-fifo_buffer #(.TAM_BUFFER(8),.WIDTH(8)) CBUF(
+fifo_buffer CBUF(
 .reset(reset),
 .clock(clock_rx),
 .tail(data_in),
