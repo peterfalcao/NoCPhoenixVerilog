@@ -38,15 +38,17 @@ begin
             next_state=REQ_ROUTING;       
     endcase
 end
-
-always@(posedge clock)
+always@(reset)
     begin
     if (reset)
         begin
         current_state<= REQ_ROUTING;
         sent<=0;
         end
-    else
+    end
+always@(posedge clock)
+    begin
+    if(!reset)
         begin
         current_state<= next_state;
         if(sending)

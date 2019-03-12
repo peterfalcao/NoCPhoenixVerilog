@@ -12,17 +12,20 @@ reg [$clog2(DEPTH)-1:0] aux_first;
 reg [$clog2(DEPTH)-1:0] aux_last ;
 reg is_full,aux_is_full,is_empty;
 
+always@(reset)
+    begin
+    if(reset)
+        begin
+        last=0;
+        first=0;
+        is_full=0;
+        is_empty=1;
+        counter=0;
+        end
+    end
 always@(posedge clock)
 begin
-if(reset)
-    begin
-    last=0;
-    first=0;
-    is_full=0;
-    is_empty=1;
-    counter=0;
-    end
-else
+if(!reset)
     begin
     aux_is_full=is_full;
     aux_last=last;
