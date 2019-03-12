@@ -1,5 +1,5 @@
 `include "defines.vh"
-module phoenix_buffer #(parameter TAM_BUFFER=`TAM_FLIT, DEPTH=`TAM_BUFFER)(
+module phoenix_buffer #(DEPTH=`TAM_BUFFER)(
 input clock, reset,rx, clock_rx,ack_h,data_ack,
 input [`TAM_FLIT-1:0] data_in,
 output credit_o,h,data_av,sender,
@@ -87,7 +87,7 @@ end
 
 assign data= bufferhead;
 assign data_av= has_data_and_sending;
-assign credit_o=((counter!=TAM_BUFFER) | (pull==1))?1:0;
+assign credit_o=((counter!=DEPTH) | (pull==1))?1:0;
 assign sender=sending;
 assign h=has_data &(!sending);
 assign pull= data_ack &has_data_and_sending;

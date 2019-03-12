@@ -3,7 +3,7 @@ module fifo_buffer #(parameter WIDTH=`TAM_FLIT, DEPTH=`TAM_BUFFER)(
 input clock, reset,push,pull,
 input [WIDTH-1:0]tail,
 output [WIDTH-1:0] head,
-output [$clog2(DEPTH):0]counter
+output reg [$clog2(DEPTH):0]counter
 );
 reg [WIDTH-1:0] buff [DEPTH-1:0];
 reg [$clog2(DEPTH)-1:0] first;
@@ -20,6 +20,7 @@ if(reset)
     first=0;
     is_full=0;
     is_empty=1;
+    counter=0;
     end
 else
     begin
@@ -45,7 +46,9 @@ else
     end      
 end
 
+always@(*)
+    counter=is_full?DEPTH:(last>=first?(last-first):(DEPTH-(first-last)));
+
 assign head=buff[first];
-assign counter=is_full?DEPTH:(last>=first?(last-first):(DEPTH-(first-last)));
 
 endmodule
