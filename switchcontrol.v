@@ -106,11 +106,9 @@ module switchcontrol #(parameter address=`TAM_FLIT)
                `S5: PES=`S1;                                
             endcase 
         end
-    always@(posedge clock or reset)
+    always@(posedge clock)
         begin
-        if (reset==1)
-           ES<=`S0;
-        else 
+        if(!reset) 
             begin
             ES<=PES;   
             case(ES)
@@ -174,14 +172,14 @@ module switchcontrol #(parameter address=`TAM_FLIT)
     always@(posedge clock) begin
         if(!reset) begin
            // $display("Always 1 %g, sender_ant: %x, sender: %x", $time, sender_ant, sender);
-            sender_ant_2<=sender; 
-            sender_ant <= sender_ant_2;
+            //sender_ant_2<=sender; 
+            sender_ant <= sender;//_ant_2;
            // $display("Always 2 %g, sender_ant: %x, sender: %x", $time, sender_ant, sender);
         end
     end
-    initial begin
-        #430; $display("Probe: %g, sender_ant: %x, sender: %x", $time, sender_ant, sender);
-    end
+    always@(reset)
+        if (reset==1)
+           ES<=`S0;
      
     //assign mux_in_a=source; realocado para o always combinacional
     assign free=auxfree;
