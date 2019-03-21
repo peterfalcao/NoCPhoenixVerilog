@@ -21,8 +21,8 @@
 
 `include"defines.vh"
 module NOC(
-   input [`NROT-1:0]clock,clock_rxLocal,rxLocal,credit_iLocal,
-   input reset,
+   input [`NROT-1:0]rxLocal,
+   input reset,clock,
    input [`NR_REGF-1:0]data_inLocal_flit,
    output [`NROT-1:0] credit_oLocal,clock_txLocal,txLocal,
    output [`NR_REGF-1:0]data_outLocal_flit
@@ -54,7 +54,7 @@ module NOC(
     for(i=0; i<`NROT;i=i+1)
         begin
         routercc #(.address(addr(i)))router(
-            .clock(clock[i]),
+            .clock(clock),
             .reset(reset),
             .credit_i(credit_i[i]),
             .clock_rx(clock_rx[i]),
@@ -106,9 +106,9 @@ module NOC(
         assign credit_i[i][3]= credit_o[i-1][2];
         end
     //LOCAL
-    assign clock_rx[i][`LOCAL]=clock_rxLocal[i];
+    assign clock_rx[i][`LOCAL]=clock;
     assign data_in[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4]=data_inLocal_flit[i*`TAM_FLIT+:`TAM_FLIT];
-    assign credit_i[i][`LOCAL]= credit_iLocal[i];
+    assign credit_i[i][`LOCAL]= tx[i][`LOCAL];
     assign rx[i][`LOCAL]=rxLocal[i];
     
     assign clock_txLocal[i]=clock_tx[i][`LOCAL];

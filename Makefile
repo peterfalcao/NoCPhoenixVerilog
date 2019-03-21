@@ -1,8 +1,9 @@
-SOURCES= $(wildcard *.v) 
+SOURCES= $(wildcard *.v)
 SOURCES+= defines.vh
+#SOURCES-= topNOC.v
 TOP= NOC
-all: $(SOURCES) main.cpp
-	verilator -Wall --cc $(SOURCES) --top-module $(TOP) --trace --exe main.cpp 
+all: $(SOURCES) main.cpp noc.cpp
+	verilator -Wall --cc $(SOURCES) --top-module $(TOP) --trace --exe main.cpp noc.cpp
 	make -j -C obj_dir -f VNOC.mk VNOC
 
 run: all
