@@ -27,9 +27,8 @@ input enable,
 output reg isOutputSelected,
 output reg [$clog2(size)-1:0] selectedOutput 
  );
- 
-   
-reg auxDone;
+    
+reg auxDone,exit_aux;
 reg [$clog2(size)-1:0]auxSelect =0;
 integer i;
     always@(requests,enable)
@@ -37,14 +36,17 @@ integer i;
         auxDone=0;
         auxSelect =0;
         if(enable==1)
-            begin                
+            begin  
+            exit_aux=0;              
             for (i = 0; i < size; i = i +1) 
                 begin
-                if(requests[i]==1)
+                if(requests[i]==1 & exit_aux==0)
                     begin
+                    /* verilator lint_off WIDTH */
                     auxSelect=i;
+                    /* verilator lint_on WIDTH */
                     auxDone=1;
-                    i=size;
+                    exit_aux=1;
                     end
                 end            
             end

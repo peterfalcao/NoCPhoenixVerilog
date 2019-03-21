@@ -12,9 +12,10 @@ localparam SEND_DATA=1;
 wire pull, has_data,has_data_and_sending;
 wire [`TAM_FLIT-1:0] bufferhead;
 wire [$clog2(DEPTH):0]counter;
-reg sending,sent,ack_aux;
+reg [`TAM_FLIT-1:0] counter_flit;
+reg sending,sent;
 reg next_state, current_state;
-integer flit_index, counter_flit;
+integer flit_index;
 
 fifo_buffer CBUF(
 .reset(reset),
@@ -38,17 +39,15 @@ begin
             next_state=REQ_ROUTING;       
     endcase
 end
-always@(reset)
+
+always@(posedge clock)
     begin
     if (reset)
         begin
         current_state<= REQ_ROUTING;
         sent<=0;
         end
-    end
-always@(posedge clock)
-    begin
-    if(!reset)
+    else
         begin
         current_state<= next_state;
         if(sending)

@@ -12,21 +12,18 @@ reg [$clog2(DEPTH)-1:0] aux_first;
 reg [$clog2(DEPTH)-1:0] aux_last ;
 reg is_full,aux_is_full,is_empty;
 
-always@(reset)
-    begin
-    if(reset)
-        begin
-        last=0;
-        first=0;
-        is_full=0;
-        is_empty=1;
-        counter=0;
-        end
-    end
 always@(posedge clock)
 begin
-if(!reset)
+if(reset)
     begin
+    last<=0;
+    first<=0;
+    is_full<=0;
+    is_empty<=1;
+    end
+else
+    begin
+    /* verilator lint_off BLKSEQ */
     aux_is_full=is_full;
     aux_last=last;
     aux_first=first;
@@ -34,18 +31,19 @@ if(!reset)
         begin
         aux_first=(aux_first== DEPTH-1)?0:(aux_first+1);
         aux_is_full=0;
-        is_empty=(aux_first==aux_last)?1:0;
+        is_empty<=(aux_first==aux_last)?1:0;
         end
     if((!aux_is_full)&push)
         begin
         buff[aux_last]<=tail;
         aux_last=(aux_last== DEPTH-1)?0:(aux_last+1);
-        is_empty=0;
+        is_empty<=0;
         aux_is_full=(aux_first==aux_last)?1:0;
         end
     is_full<=aux_is_full;
     last<=aux_last;
     first<=aux_first;
+    /* verilator lint_on BLKSEQ */
     end      
 end
 

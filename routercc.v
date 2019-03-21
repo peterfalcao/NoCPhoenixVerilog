@@ -28,7 +28,6 @@ module routercc #(parameter address=`TAM_FLIT)(
     output [`NP_REGF-1:0] data_out//arraynportregflit
     );
     genvar i;
-    integer j;
     wire [`NPORT-1:0]h, ack_h, data_av, sender, data_ack; //regNport
     reg [`TAM_FLIT-1:0]data_inb[`NPORT-1:0];// arrayNport_regflit
     wire [`TAM_FLIT-1:0]data_outb[`NPORT-1:0];// arrayNport_regflit
@@ -71,7 +70,6 @@ module routercc #(parameter address=`TAM_FLIT)(
         
     crossbar crossbar(
         .data_av(data_av),
-        .sender(sender),
         .free(free),
         .credit_i(credit_i),
         .data_in_t(data_in_t),

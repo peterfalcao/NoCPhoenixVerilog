@@ -21,7 +21,6 @@
 
 `include "defines.vh"
 module routingMechanism#(parameter adress=16)(
-input clock,reset,
 input [`TAM_FLIT-1:0]dest,
 output reg [`NPORT-1:0]outputPort,
 output [`ROUTERCONTROL-1:0]find

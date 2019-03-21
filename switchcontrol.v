@@ -54,22 +54,23 @@ module switchcontrol #(parameter address=`TAM_FLIT)
     integer i;
 
     RoundRobinArbiter rr1(.requests(h),.enable(enable),.selectedOutput(prox),.isOutputSelected(ready));
-    routingMechanism #(address)rm1(.clock(clock),.reset(reset),.dest(header),.outputPort(dir),.find(find));
+    routingMechanism #(address)rm1(.dest(header),.outputPort(dir),.find(find));
     FixedPriorityArbiter fp1(.requests(requests),.enable(1'b1),.isOutputSelected(isOutputSelected),.selectedOutput(selectedOutput)); 
 
     always@(*)
         begin
+        for(i=0;i<`NPORT;i=i+1)
+            mux_in_a[i]=source[i];
         if(`NPORT==5)
             begin
             {data[4],data[3],data[2],data[1],data[0]}=data_in;
             mux_in={mux_in_a[4],mux_in_a[3],mux_in_a[2],mux_in_a[1],mux_in_a[0]};
             mux_out={mux_out_a[4],mux_out_a[3],mux_out_a[2],mux_out_a[1],mux_out_a[0]};
             end
-        ask <=(|h)? 1:0;
+        ask =(|h)? 1:0;
         incoming=sel;
         header=data[incoming];
-        for(i=0;i<`NPORT;i=i+1)
-            mux_in_a[i]=source[i];
+        
        
         end
         
@@ -106,11 +107,11 @@ module switchcontrol #(parameter address=`TAM_FLIT)
                `S5: PES=`S1;                                
             endcase 
         end
-    always@(posedge clock or reset)
+    always@(posedge clock)
         begin
         if (reset==1)
-           ES<=`S0;
-        else 
+            ES<=`S0;
+        else
             begin
             ES<=PES;   
             case(ES)
@@ -160,29 +161,19 @@ module switchcontrol #(parameter address=`TAM_FLIT)
             for(i=`EAST;i<=`LOCAL;i=i+1)
                 if (sender[i] == 0 & sender_ant[i] == 1)
                     begin
-                    $display("t= %g i= %x sender=%x sender_ant=%x",$time,i,sender,sender_ant);
                     auxfree[source[i]] <= 1;
-                    //$display("",i,source[i]);
                     //auxfree[i] <= 1;
                     end
 
            end
 
         end
-        
-     reg [`NPORT-1:0] sender_ant_2;
     always@(posedge clock) begin
         if(!reset) begin
-           // $display("Always 1 %g, sender_ant: %x, sender: %x", $time, sender_ant, sender);
-            sender_ant_2<=sender; 
-            sender_ant <= sender_ant_2;
-           // $display("Always 2 %g, sender_ant: %x, sender: %x", $time, sender_ant, sender);
+            sender_ant <= sender;//_ant_2;
         end
     end
-    initial begin
-        #430; $display("Probe: %g, sender_ant: %x, sender: %x", $time, sender_ant, sender);
-    end
-     
+   
     //assign mux_in_a=source; realocado para o always combinacional
     assign free=auxfree;
     assign requests=auxfree & dir;

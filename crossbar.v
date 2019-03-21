@@ -20,10 +20,10 @@
 //////////////////////////////////////////////////////////////////////////////////
 `include "defines.vh"
 module crossbar (
-input [`NPORT-1:0]data_av, sender, free, credit_i,
+input [`NPORT-1:0]data_av, free, credit_i,
 input [`NP_REGF-1:0] data_in_t,
-input [`NP_REG3:0] tab_in_t , 
-input [`NP_REG3:0] tab_out_t,
+input [`NP_REG3-1:0] tab_in_t , 
+input [`NP_REG3-1:0] tab_out_t,
 output [`NPORT-1:0] data_ack, tx, 
 output reg[`NP_REGF-1:0] data_out_t );
     
