@@ -76,6 +76,7 @@ module NOC(
     //EAST
     if(i<`NUM_Y*`MAX_X)
         begin
+        initial $display("Router %d :EAST", i);
         assign clock_rx[i][0]=clock_tx[i+`NUM_Y][1];
         assign rx[i][0]=tx[i+`NUM_Y][1];
         assign data_in[i][`TAM_FLIT-1:0]=data_out[i+`NUM_Y][(`TAM_FLIT*2)-1:`TAM_FLIT];
@@ -84,22 +85,25 @@ module NOC(
     //WEST
     if(i>=`NUM_Y)
         begin
+        initial $display("Router %d :WEST", i);
         assign clock_rx[i][1]=clock_tx[i-`NUM_Y][0];
         assign rx[i][1]=tx[i-`NUM_Y][0];
         assign data_in[i][(`TAM_FLIT*2)-1:`TAM_FLIT]=data_out[i-`NUM_Y][`TAM_FLIT-1:0];
         assign credit_i[i][1]= credit_o[i-`NUM_Y][0];
         end
     //NORTH
-    if((i-(i/`NUM_Y))*`NUM_Y<`MAX_Y)
+    if(i-(i/`NUM_Y)*`NUM_Y<`MAX_Y)
         begin
+        initial $display("Router %d :NORTH", i);
         assign clock_rx[i][2]=clock_tx[i+1][3];
         assign rx[i][2]=tx[i+1][3];
         assign data_in[i][(`TAM_FLIT*3)-1:`TAM_FLIT*2]=data_out[i+1][(`TAM_FLIT*4)-1:`TAM_FLIT*3];
-        assign credit_i[i][2]= credit_o[i+1][3];
+        assign credit_i[i][2]=credit_o[i+1][3];
         end
     //SOUTH
-    if((i-(i/`NUM_Y))*`NUM_Y>`MIN_Y)
+    if(i-(i/`NUM_Y)*`NUM_Y>`MIN_Y)
         begin
+        initial $display("Router %d :SOUTH", i);
         assign clock_rx[i][3]=clock_tx[i-1][2];
         assign rx[i][3]=tx[i-1][2];
         assign data_in[i][(`TAM_FLIT*4)-1:`TAM_FLIT*3]=data_out[i-1][(`TAM_FLIT*3)-1:`TAM_FLIT*2];
@@ -118,4 +122,5 @@ module NOC(
     end
 endgenerate
 /* verilator lint_on UNOPTFLAT */       
+
 endmodule
