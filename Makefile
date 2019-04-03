@@ -2,7 +2,7 @@ SOURCES= $(wildcard *.v)
 SOURCES+= defines.vh
 #SOURCES-= topNOC.v
 TOP= NOC
-INFILES= $(wildcard *.txt)
+INFILES= $(wildcard in/*.txt)
 all: $(SOURCES) main.cpp noc.cpp
 	verilator -Wall --cc $(SOURCES) --top-module $(TOP) --trace --exe main.cpp noc.cpp -CFLAGS "-std=c++0x -Wall"
 	make -j -C obj_dir -f VNOC.mk VNOC
