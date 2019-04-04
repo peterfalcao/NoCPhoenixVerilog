@@ -1,5 +1,6 @@
 #include "noc.h"
 #include <math.h>
+
 NOC::NOC(){// Cria o Objeto e inicializa as variáveis necessárias
 	this->dut =new VNOC;
 	this->mtime=0;
@@ -9,11 +10,11 @@ NOC::NOC(){// Cria o Objeto e inicializa as variáveis necessárias
 	pkg_counter= new int[num_router];
 	pkg_counter_out= new int[num_router];
 	has_pkg_aux= new bool[num_router];
+	flit_array= new int[num_router];
 	this->aOut_numpkg= new int[num_router];
 	this->arrayOut = new int**[num_router];
 	this->array3D=new int**[num_router];
 	this->rx=0;
-	this->data=0xFFFFFFFFFFFFFFFF;
 	for(uint32_t i=0;i<num_router;i++){
 		flit_counter[i]=0;//num_router
 		pkg_counter[i]=0;
@@ -21,6 +22,7 @@ NOC::NOC(){// Cria o Objeto e inicializa as variáveis necessárias
 		flit_counter_out[i]=0;
 		has_pkg_aux[i]=false;
 		rt[i].id=i;
+		flit_array[i]=0;
 	}
 }
 
@@ -37,13 +39,13 @@ NOC::~NOC(){//Deleta o objeto e libera a memoria dos arrays criados
 	delete array3D;
 	delete arrayOut;
 	delete aOut_numpkg;
+	delete flit_array;
 }
 
 void NOC::tick() {
 	this->mtime++;
 	dut->clock = 0;
 	this->sendpackage();
-	if (dut->txLocal!=0) fillDataOut();
 	dut->eval();
 	if(trace_f) trace_f->dump(this->mtime);
 
@@ -56,17 +58,17 @@ void NOC::tick() {
 	if(trace_f) trace_f->dump(this->mtime);
 }
 
-void NOC::reset() {
+void NOC::reset() {// Mtime comentado= reset nao eh mostrado no gtkwave
 	for(uint32_t i = 0; i < 2; i++) {
 		dut->clock = 0;
     	dut->reset = 1;
-		this->mtime++;
+		//this->mtime++;
 		dut->eval();
 		if(trace_f) trace_f->dump(this->mtime);
 		
 		dut->clock = 1;
     	dut->reset = 1;
-		this->mtime++;
+		//this->mtime++;
 		dut->eval();
 		if(trace_f) trace_f->dump(this->mtime);
 
@@ -113,13 +115,13 @@ void NOC::initRouter(string address){
     stringstream sx,sy;
     int x,y;
     for(uint32_t i=0;i<num_router;i++){
-    	sx<<hex<<address.substr(2,2);
+    	sx<<hex<<address.substr(5,2);
     	sx>>x;
 		if(i/num_y==x){
-			sy<<hex<<address.substr(4,2);
+			sy<<hex<<address.substr(7,2);
     		sy>>y;
 			if(i%num_y==y){
-				this->rt[i].addr=address.substr(2,2)+address.substr(4,2);
+				this->rt[i].addr=address.substr(5,2)+address.substr(7,2);
 				cout<<"rt "<<i<<" = "<<this->rt[i].addr<<endl;
 				break;
 			}
@@ -134,7 +136,7 @@ void NOC::readtraffic(string address) {
     int addr;
     stringstream sx,sy;
     int x,y;
-    sx<<hex<<address.substr(2,4);
+    sx<<hex<<address.substr(5,4);
     sx>>addr;
     router=calculateRouter(addr);
     this->array3D[router] = new int*[num_pkg];
@@ -153,9 +155,11 @@ void NOC::readtraffic(string address) {
 	        i=0;
 	        if(j<num_pkg-1){
 	        	j++;
-	            this->array3D[router][j] = new int[num_flit+1];
-        		
-        		}
+	            this->array3D[router][j] = new int[num_flit+1];      		
+        	}
+        	else
+        		break;
+
         }
     }
     inFile.close();
@@ -166,8 +170,6 @@ void NOC::sendpackage(){
 	for(uint32_t i=0;i<num_router;i++){
 		this->sendflit(i);
 	}
-	mask=0xFFFFFFFFFFFFFFFF;
-	this->data=this->data|mask;
 } 
 
 void NOC::sendflit(int router){
@@ -202,22 +204,20 @@ int NOC::getflit(int router){
 	return flit;
 }
 
+
 void NOC::insert_data(int flit, int router){
-	long int mask=0xFFFF;
-	long int data_aux=flit;
 	int aux;
-	mask=~(mask<<router*16);
-	data_aux=(data_aux<<router*16);
-	data_aux=mask|data_aux;
-	this->data=this->data&data_aux;
-	dut->data_inLocal_flit=this->data;
-	
+	this->flit_array[router]=flit;
 	//ligar sinal rx
 	if(this->flit_counter[router]>0){
 		aux=pow(2,router);
 		this->rx=this->rx|aux;
 		dut->rxLocal=this->rx;
 	}
+}
+
+int NOC::getdata (int i) {
+	return this->flit_array[i]; 
 }
 
 void NOC::disable_rx(int router){
@@ -229,31 +229,26 @@ void NOC::disable_rx(int router){
 }
 
 
-void NOC::fillDataOut(){
+void NOC::fillDataOut(int flit, int router){
 	long int aux;
 	long int mask;
 	int txaux;
 	int sender;
-	uint16_t teste;
-
-	for(uint32_t i=0;i<num_router;i++){
-		txaux=1<<i;
-		mask=0xFFFF;	
-		if(((dut->txLocal)&txaux)!=0){//fazer mascara com cada i
-			aux=dut->data_outLocal_flit;
-			mask=mask<<16*i;
-			aux=aux&mask;
-			teste=aux>>16*i;
-			this->arrayOut[i][this->pkg_counter_out[i]][this->flit_counter_out[i]]=teste;
-			this->flit_counter_out[i]++;
-		}
-		if(flit_counter_out[i]>num_flit-1){
-			this->flit_counter_out[i]=0;
-			if(this->pkg_counter_out[i]<this->aOut_numpkg[i]){
-				this->pkg_counter_out[i]++;	
-				this->arrayOut[i][this->pkg_counter_out[i]]=new int[num_flit];
-			}		
-		}
+	txaux=1<<router;
+	mask=0xFFFF;	
+	if(((dut->txLocal)&txaux)!=0){//fazer mascara com cada i
+		
+		this->arrayOut[router][this->pkg_counter_out[router]][this->flit_counter_out[router]]=flit;
+		
+		this->flit_counter_out[router]++;
+	}
+	if(flit_counter_out[router]>num_flit-1){
+		this->flit_counter_out[router]=0;
+		if(this->pkg_counter_out[router]<this->aOut_numpkg[router]){
+			//cout<<"router "<<router<<" possui"<<this->pkg_counter_out[router]<<"pacotes\n";
+			this->pkg_counter_out[router]++;	
+			this->arrayOut[router][this->pkg_counter_out[router]]=new int[num_flit];
+		}		
 	}
 }
 
@@ -264,32 +259,33 @@ void NOC::checkPkg(){
 	cout<<"*******************Checando a NOC*******************"<<endl;
 	for(uint32_t i=0;i<num_router;i++){
 		cout<<"Iniciando Checagem do Roteador "<<hex<<rt[i].addr<<endl;
-		for(uint32_t j=0;j<num_pkg;j++){//num_pkg
+		for(uint32_t j=0;j<num_pkg;j++){
 			int dest=this->array3D[i][j][1];
 			router=calculateRouter(dest);
 			int y=0;
 			int x=0;
 			bool flag=false;
-			while(y<aOut_numpkg[router]){//trocar num_pkg
+			while(y<aOut_numpkg[router]){
 				if(this->array3D[i][j][x+1]!=this->arrayOut[router][y][x]){
 					y++;
-
 				}
 				else{
 					x++;
 					if(x==num_flit){
 						sucess=true;
-						//cout<<"pacote "<<j<<" do roteador "<<i<<" chegou no destino com sucesso"<<endl;
 						break;
 					}
 				}
 			}
 			if(x!=num_flit){
 				sucess= false;
-				cout<<"pacote "<<j<<" do roteador "<<i<<" nao chegou no destino"<<endl;
+				//cout<<"pacote "<<j<<" do roteador "<<i<<" nao chegou no destino"<<endl;
 			}	
 		}
-		cout<<"Todos os pacotes do roteador "<<hex<<rt[i].addr<<" chegaram ao destino com sucesso"<<endl;
+		if(sucess)
+			cout<<"Todos os pacotes do roteador "<<hex<<rt[i].addr<<" chegaram ao destino com sucesso"<<endl;
+		else
+			cout<<"Algum pacote não chegou ao destino, verifique sua origem acima"<<endl;
 	}
 	
 }

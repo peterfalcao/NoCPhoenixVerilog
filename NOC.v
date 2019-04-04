@@ -20,13 +20,16 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 `include"defines.vh"
+
 module NOC(
    input [`NROT-1:0]rxLocal,
    input reset,clock,
-   input [`NR_REGF-1:0]data_inLocal_flit,
-   output [`NROT-1:0] credit_oLocal,clock_txLocal,txLocal,
-   output [`NR_REGF-1:0]data_outLocal_flit
+   //input [`NR_REGF-1:0]data_inLocal_flit,
+   //output [`NR_REGF-1:0]data_outLocal_flit,
+   output [`NROT-1:0] credit_oLocal,clock_txLocal,txLocal
    );
+import "DPI-C" function int getflit (input int router);
+import "DPI-C" function void saveData (input int flit, input int router);
 /* verilator lint_off UNOPTFLAT */ 
     wire [`NP_REGF-1:0]data_in[`NROT-1:0];
     wire [`NPORT-1:0]rx[`NROT-1:0];
@@ -36,7 +39,7 @@ module NOC(
     wire [`NPORT-1:0] clock_tx[`NROT-1:0];
     wire [`NPORT-1:0] tx[`NROT-1:0];
     wire [`NP_REGF-1:0] data_out[`NROT-1:0]; 
-    
+    reg [`TAM_FLIT-1:0]data_inLocal_aux[`NROT-1:0];
     /* verilator lint_off WIDTH */
     function [`TAM_FLIT-1:0]addr;
       input [$clog2(`NROT)-1:0]index;
@@ -48,7 +51,7 @@ module NOC(
       end
     endfunction
     /* verilator lint_on WIDTH */
-
+    initial $display("nrot= %d",`NROT);
     genvar i;
     generate
     for(i=0; i<`NROT;i=i+1)
@@ -110,13 +113,28 @@ module NOC(
         assign credit_i[i][3]= credit_o[i-1][2];
         end
     //LOCAL
+    always@(negedge clock)
+        begin
+            /* verilator lint_off WIDTH */
+            data_inLocal_aux[i]<=getflit(i);
+            /* verilator lint_on WIDTH */
+        end
+    always@(posedge clock)
+        begin
+            //int j;
+            //for(j=0;j<`NROT-1;j=j+1)
+           // begin
+                if (tx[i][`LOCAL]!=0) 
+                    saveData({{16'b0},{data_out[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4]}},i);
+           // end
+        end
     assign clock_rx[i][`LOCAL]=clock;
-    assign data_in[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4]=data_inLocal_flit[i*`TAM_FLIT+:`TAM_FLIT];
+    assign data_in[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4]=data_inLocal_aux[i];//data_inLocal_flit[i*`TAM_FLIT+:`TAM_FLIT];
     assign credit_i[i][`LOCAL]= tx[i][`LOCAL];
     assign rx[i][`LOCAL]=rxLocal[i];
     
     assign clock_txLocal[i]=clock_tx[i][`LOCAL];
-    assign data_outLocal_flit[i*`TAM_FLIT+:`TAM_FLIT]=data_out[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4];
+    //assign data_outLocal_flit[i*`TAM_FLIT+:`TAM_FLIT]=data_out[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4];
     assign credit_oLocal[i]=credit_o[i][`LOCAL];
     assign txLocal[i]=tx[i][`LOCAL];
     end

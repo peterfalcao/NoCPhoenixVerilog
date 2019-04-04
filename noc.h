@@ -13,8 +13,8 @@ using namespace std;
 
 #define num_pkg 24
 #define num_flit 9
-#define num_router 4
-#define num_y 2 //altura da NOC
+#define num_router 9
+#define num_y 3 //altura da NOC
 class NOC{
 	VNOC* dut;
 	VerilatedVcdC *trace_f;
@@ -33,7 +33,8 @@ class NOC{
 	struct rtr{
 	string addr;
 	int id;
-	}rt[4];
+	}rt[num_router];
+	int* flit_array;
 public:
 	NOC();
 	~NOC();
@@ -44,14 +45,15 @@ public:
 	void checkPkg();
 	void initRouter(string address);
 	void initPkgChecker();
+	int getdata (int i);
+	void fillDataOut(int flit, int router);
 private:
 	void sendpackage();
 	void sendflit(int router);
 	int getflit(int router);
 	bool has_pkg(int router);
 	void insert_data(int flit, int router);
-	void disable_rx(int router);
-	void fillDataOut();
+	void disable_rx(int router);	
 	int calculateRouter(int address);
 	void countPkgOut(int dest);
 };
