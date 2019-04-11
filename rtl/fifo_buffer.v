@@ -16,10 +16,10 @@ always@(posedge clock)
 begin
 if(reset)
     begin
-    last=0;
-    first=0;
-    is_full=0;
-    is_empty=1;
+    last<=0;
+    first<=0;
+    is_full<=0;
+    is_empty<=1;
     end
 else
     begin
@@ -44,7 +44,7 @@ else
     last<=aux_last;
     first<=aux_first;
     /* verilator lint_on BLKSEQ */
-    end
+    end      
 end
 
 always@(*)
