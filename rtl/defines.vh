@@ -61,7 +61,7 @@
 // regNport [`NPORT-1:0]
 // regflit ([`TAM_FLIT-1:0]);
 // regmetadeflit [`METADE_FLIT-1:0]
-// regquartoflit [`QUARTOFLIT-1:0] 
+// regquartoflit [`QUARTOFLIT-1:0]
 // pointer [`TAM_POINTER-1:0];
 // [`TAM_BUFFER-1:0]buff  [`TAM_FLIT-1:0];
 // [`NPORT-1:0] arrayNport_reg3 [`reg3 -1:0]

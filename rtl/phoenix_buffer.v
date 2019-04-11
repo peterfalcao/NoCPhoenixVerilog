@@ -36,7 +36,7 @@ begin
             next_state=SEND_DATA;
     SEND_DATA:
         if (sent)
-            next_state=REQ_ROUTING;       
+            next_state=REQ_ROUTING;
     endcase
 end
 
@@ -57,13 +57,13 @@ always@(posedge clock)
                 sent<=0;
                 if (flit_index==1)
                     counter_flit<=bufferhead;
-                else 
+                else
                     begin
                     if(counter_flit!=1)
                         counter_flit<=counter_flit-1;
                     else//se counter_flit=1
                         sent<=1;
-                    end                           
+                    end
                 flit_index<=flit_index+1;
                 end
             end
@@ -75,7 +75,7 @@ always@(posedge clock)
             end
         end
     end
-    
+
 always@(current_state or sent)
 begin
     case (current_state)

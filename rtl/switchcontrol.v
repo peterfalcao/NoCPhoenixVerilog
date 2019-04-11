@@ -1,22 +1,22 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
+// Company:
+// Engineer:
+//
 // Create Date: 27.02.2019 17:16:16
-// Design Name: 
+// Design Name:
 // Module Name: switchcontrol
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
+// Project Name:
+// Target Devices:
+// Tool Versions:
+// Description:
+//
+// Dependencies:
+//
 // Revision:
 // Revision 0.01 - File Created
 // Additional Comments:
-// 
+//
 //////////////////////////////////////////////////////////////////////////////////
 `include"defines.vh"
 module switchcontrol #(parameter address=`TAM_FLIT)
@@ -25,13 +25,13 @@ module switchcontrol #(parameter address=`TAM_FLIT)
       input  [`NPORT-1:0] h,
       output reg [`NPORT-1:0] ack_h,
       input [`NP_REGF-1:0] data_in,
-      input [`NPORT-1:0] sender, 
+      input [`NPORT-1:0] sender,
       output  [`NPORT-1:0] free,
       output reg [`NP_REG3-1:0] mux_in,
-      output reg  [`NP_REG3-1:0] mux_out      
+      output reg  [`NP_REG3-1:0] mux_out
     );
     //output  [`reg3 -1:0] mux_in,
-    //      output reg  [`reg3 -1:0] mux_out  
+    //      output reg  [`reg3 -1:0] mux_out
     reg [`reg3-1:0]mux_in_a[`NPORT-1:0];
     reg [`reg3-1:0]mux_out_a[`NPORT-1:0];
     reg [`TAM_FLIT-1:0]data[`NPORT-1:0];// arrayNport_regflit
@@ -40,7 +40,7 @@ module switchcontrol #(parameter address=`TAM_FLIT)
     reg enable;
     reg [$clog2(`NPORT)-1:0] sel=0;
     reg [`reg3-1:0] incoming=0;
-    reg [`TAM_FLIT-1:0] header=0;    
+    reg [`TAM_FLIT-1:0] header=0;
     reg [$clog2(`NPORT)-1:0] indice_dir=0;
     reg [`NPORT-1:0] auxfree;
     reg [`reg3 -1:0] source [`NPORT-1:0];
@@ -55,7 +55,7 @@ module switchcontrol #(parameter address=`TAM_FLIT)
 
     RoundRobinArbiter rr1(.requests(h),.enable(enable),.selectedOutput(prox),.isOutputSelected(ready));
     routingMechanism #(address)rm1(.dest(header),.outputPort(dir),.find(find));
-    FixedPriorityArbiter fp1(.requests(requests),.enable(1'b1),.isOutputSelected(isOutputSelected),.selectedOutput(selectedOutput)); 
+    FixedPriorityArbiter fp1(.requests(requests),.enable(1'b1),.isOutputSelected(isOutputSelected),.selectedOutput(selectedOutput));
 
     always@(*)
         begin
@@ -70,42 +70,42 @@ module switchcontrol #(parameter address=`TAM_FLIT)
         ask =(|h)? 1:0;
         incoming=sel;
         header=data[incoming];
-        
-       
+
+
         end
-        
-    always@(ES, ask, find, isOutputSelected) 
+
+    always@(ES, ask, find, isOutputSelected)
         begin
-            case(ES)              
+            case(ES)
                 `S0: PES=`S1;
-                `S1: 
+                `S1:
                     begin
                     if (ask==1)
                         begin
                         PES=`S2;
-                        end                          
+                        end
                     else
-                        PES=`S1;                     
+                        PES=`S1;
                      end
                `S2: PES=`S3;
-               `S3: 
+               `S3:
                     begin
                     if (find==`validRegion)
                         begin
                         if(isOutputSelected==1)
                             PES=`S4;
                         else
-                            PES=`S1;                                    
+                            PES=`S1;
                         end
                     else
                         if (find==`portError)
-                            PES=`S1;   
-                        else 
-                            PES = `S3;                  
+                            PES=`S1;
+                        else
+                            PES = `S3;
                     end
-               `S4: PES=`S5;                       
-               `S5: PES=`S1;                                
-            endcase 
+               `S4: PES=`S5;
+               `S5: PES=`S1;
+            endcase
         end
     always@(posedge clock)
         begin
@@ -113,7 +113,7 @@ module switchcontrol #(parameter address=`TAM_FLIT)
             ES<=`S0;
         else
             begin
-            ES<=PES;   
+            ES<=PES;
             case(ES)
                 //zera vari�veis
                 `S0:begin
@@ -128,16 +128,16 @@ module switchcontrol #(parameter address=`TAM_FLIT)
                         source[i]<=0;
                         end
                     end
-                //chega um header   
+                //chega um header
                 `S1:begin
                     enable<=ask;
                     //ceTable<=0;
                     ack_h<=0;
                     end
-                // Seleciona quem tera direito a requisitar roteamento    
+                // Seleciona quem tera direito a requisitar roteamento
                 `S2:begin
                     sel <= prox;
-                    enable <= ~ready;                       
+                    enable <= ~ready;
                     end
                 //Aguarda resposta da Tabela
                 `S3:begin
@@ -155,9 +155,9 @@ module switchcontrol #(parameter address=`TAM_FLIT)
                 default:begin
                     ack_h[sel] <= 0;
                     //ceTable <= '0';
-                    end        
+                    end
             endcase
-            
+
             for(i=`EAST;i<=`LOCAL;i=i+1)
                 if (sender[i] == 0 & sender_ant[i] == 1)
                     begin
@@ -173,11 +173,11 @@ module switchcontrol #(parameter address=`TAM_FLIT)
             sender_ant <= sender;//_ant_2;
         end
     end
-   
+
     //assign mux_in_a=source; realocado para o always combinacional
     assign free=auxfree;
     assign requests=auxfree & dir;
-    
+
 
 
     endmodule
