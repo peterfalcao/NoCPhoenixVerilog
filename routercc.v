@@ -29,14 +29,15 @@ module routercc #(parameter address=`TAM_FLIT)(
     );
     genvar i;
     integer j;
-    reg [`NPORT-1:0]h, ack_h, data_av, sender, data_ack; //regNport
-    wire [`NPORT-1:0]data[`TAM_FLIT-1:0];// arrayNport_regflit
+    wire [`NPORT-1:0]h, ack_h, data_av, sender, data_ack; //regNport
+    reg [`TAM_FLIT-1:0]data_inb[`NPORT-1:0];// arrayNport_regflit
+    wire [`TAM_FLIT-1:0]data_outb[`NPORT-1:0];// arrayNport_regflit
     wire [`NPORT-1:0]free;//regNport
     
-    reg [`NP_REGF:0]data_in_t;
-    wire [`NP_REG3:0]mux_in_t;
-    wire [`NP_REG3:0]mux_out_t;
-    wire [`NP_REGF:0] data_out_t;
+    reg [`NP_REGF-1:0]data_in_t;
+    wire [`NP_REG3-1:0]mux_in_t;
+    wire [`NP_REG3-1:0]mux_out_t;
+
     generate
         for(i=`EAST; i<=`LOCAL;i=i+1)
             begin
@@ -44,15 +45,15 @@ module routercc #(parameter address=`TAM_FLIT)(
             .clock(clock), 
             .reset(reset),
             .rx(rx[i]), 
-            .clock_rx(clock[i]),//nao usa clock_rx ainda
+            .clock_rx(clock_rx[i]),//nao usa clock_rx ainda
             .ack_h(ack_h[i]),
             .data_ack(data_ack[i]),
-            .data_in(data[i]),//regflict
+            .data_in(data_inb[i]),//regflict
             .credit_o(credit_o[i]),
             .h(h[i]),
             .data_av(data_av[i]),
             .sender(sender[i]),
-            .data(data[i]));
+            .data(data_outb[i]));
             end
     endgenerate
     
@@ -61,7 +62,7 @@ module routercc #(parameter address=`TAM_FLIT)(
            .reset(reset),
            .h(h),
            .ack_h(ack_h),
-           .data(data_in_t),
+           .data_in(data_in_t),
            .sender(sender), 
            .free(free),
            .mux_in(mux_in_t),
@@ -83,12 +84,16 @@ module routercc #(parameter address=`TAM_FLIT)(
 
     always@(*)
         if(`NPORT==5)
-            data_in_t={data_in[4],data_in[3],data_in[2],data_in[1],data_in[0]};
+            begin
+            {data_inb[4],data_inb[3],data_inb[2],data_inb[1],data_inb[0]}=data_in;
+            data_in_t={data_outb[4],data_outb[3],data_outb[2],data_outb[1],data_outb[0]};
+            end
         
     generate
         for( i=0;i<=(`NPORT-1);i=i+1)
         begin
             assign clock_tx[i]=clock;
         end
-    endgenerate    
+    endgenerate 
+
 endmodule

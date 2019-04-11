@@ -19,8 +19,8 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
-module RoundRobinArbiter #(parameter size=8)
+`include"defines.vh"
+module RoundRobinArbiter #(parameter size=`NPORT)
 (
 input [size-1:0] requests,
 input enable,
@@ -28,33 +28,38 @@ output isOutputSelected,
 output reg [$clog2(size)-1:0] selectedOutput 
  );
 
-reg [$clog2(size)-1:0] lastport;
-reg [$clog2(size)-1:0] selectedPort =0;
+reg [$clog2(size)-1:0] lastport=0;
+reg [$clog2(size)-1:0] selectedPort=0 ;
 reg [$clog2(size)-1:0] requestCheck;
-reg i;
+reg exit_aux;
+integer i;
 always@(posedge enable)
-begin 
-        requestCheck=lastport;
-        selectedPort=lastport;
-            for (i = 0; i < requests; i = i +1) 
-                        begin
-                            if(requestCheck==size-1)
-                                begin
-                                    requestCheck=0;
-                                end
-                            else
-                                begin
-                                    requestCheck=requestCheck+1;
-                                end
-                            if(requests[requestCheck]==1)
-                                begin
-                                    selectedPort=requestCheck;
-                                end
-                        end     
+    begin 
+    requestCheck=lastport;
+    selectedPort=lastport;
+    exit_aux=1;
+    for (i = 0; i < size; i = i +1) 
+        begin
+        if(exit_aux==1)
+        begin
+        if(requestCheck==size-1 )//& exit_aux==1)
+            begin
+            requestCheck=0;
+            end
+        else
+            //if(exit_aux==1)
+                requestCheck=requestCheck+1;
             
-            lastport<=selectedPort;
-            selectedOutput=selectedPort;
-
-end
-            assign isOutputSelected=enable;
+        if(requests[requestCheck]==1 )//& exit_aux==1)
+            begin
+            selectedPort=requestCheck;
+            exit_aux=0;//simula o quit do vhdl
+            end
+        end
+        end     
+    lastport<=selectedPort;
+    selectedOutput<=selectedPort;
+    end
+    
+    assign isOutputSelected=enable;
 endmodule

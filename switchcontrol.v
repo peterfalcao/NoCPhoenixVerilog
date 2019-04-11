@@ -18,116 +18,112 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
-
+`include"defines.vh"
 module switchcontrol #(parameter address=`TAM_FLIT)
-    ( input clk,
+    ( input clock,
       input reset,
       input  [`NPORT-1:0] h,
       output reg [`NPORT-1:0] ack_h,
-      input [`TAM_FLIT-1:0] data,
+      input [`NP_REGF-1:0] data_in,
       input [`NPORT-1:0] sender, 
       output  [`NPORT-1:0] free,
-      output  [`reg3 -1:0] mux_in,
-      output reg  [`reg3 -1:0] mux_out      
+      output reg [`NP_REG3-1:0] mux_in,
+      output reg  [`NP_REG3-1:0] mux_out      
     );
+    //output  [`reg3 -1:0] mux_in,
+    //      output reg  [`reg3 -1:0] mux_out  
+    reg [`reg3-1:0]mux_in_a[`NPORT-1:0];
+    reg [`reg3-1:0]mux_out_a[`NPORT-1:0];
+    reg [`TAM_FLIT-1:0]data[`NPORT-1:0];// arrayNport_regflit
     reg [$clog2(`STATE)-1:0] ES,PES;
-    reg ask;
-    reg [$clog2(`NPORT)-1:0] sel,prox;
-    reg [`reg3-1:0] incoming;
-    reg [`TAM_FLIT-1:0] header;
-    reg  ready,enable;
-    
-    reg [$clog2(`NPORT)-1:0] indice_dir;
+    reg ask=0;
+    reg enable;
+    reg [$clog2(`NPORT)-1:0] sel=0;
+    reg [`reg3-1:0] incoming=0;
+    reg [`TAM_FLIT-1:0] header=0;    
+    reg [$clog2(`NPORT)-1:0] indice_dir=0;
     reg [`NPORT-1:0] auxfree;
-    reg [`reg3 -1:0] source;
+    reg [`reg3 -1:0] source [`NPORT-1:0];
     reg [`NPORT-1:0] sender_ant;
-    reg [`NPORT-1:0] dir;
+    wire [`NPORT-1:0] dir;
     wire [`NPORT-1:0] requests;
-    
-    reg [3:0] find;
-    integer selectedOutput;
-    reg isOutputSelected;
+    wire [$clog2(`NPORT)-1:0] prox;
+    wire [$clog2(`NPORT)-1:0]selectedOutput;
+    wire [`ROUTERCONTROL-1:0] find;
+    wire isOutputSelected, ready;
     integer i;
 
+    RoundRobinArbiter rr1(.requests(h),.enable(enable),.selectedOutput(prox),.isOutputSelected(ready));
+    routingMechanism #(address)rm1(.clock(clock),.reset(reset),.dest(header),.outputPort(dir),.find(find));
+    FixedPriorityArbiter fp1(.requests(requests),.enable(1'b1),.isOutputSelected(isOutputSelected),.selectedOutput(selectedOutput)); 
+
     always@(*)
-    begin
-     ask= (|h)? 1:0;
-     incoming=sel;
-     header=data[incoming];
-     end
-         RoundRobinArbiter rr1(.requests(h),.enable(enable),.selectedOutput(prox),.isOutputSelected(ready));
-         routingMechanism rm1(.clock(clock),.reset(reset),.dest(header),.outputPort(dir),.find(find));
-         FixedPriorityArbiter fp1(.requests(requests),.enable(1),.isOutputSelected(isOutputSelected),.selectedOutput(selectedOutput)); 
-    always@(reset,clock)
         begin
-            if (reset==1)
-                begin
-                 ES<=`S0;
-                    if (/*event clock? and*/  clock==1)
-                        begin
-                         ES<=PES;   
-                        end
-                end
-        end 
+        if(`NPORT==5)
+            begin
+            {data[4],data[3],data[2],data[1],data[0]}=data_in;
+            mux_in={mux_in_a[4],mux_in_a[3],mux_in_a[2],mux_in_a[1],mux_in_a[0]};
+            mux_out={mux_out_a[4],mux_out_a[3],mux_out_a[2],mux_out_a[1],mux_out_a[0]};
+            end
+        ask <=(|h)? 1:0;
+        incoming=sel;
+        header=data[incoming];
+        for(i=0;i<`NPORT;i=i+1)
+            mux_in_a[i]=source[i];
+       
+        end
+        
     always@(ES, ask, find, isOutputSelected) 
         begin
-            case(ES)
-                
-                `S0: PES<=`S1;
+            case(ES)              
+                `S0: PES=`S1;
                 `S1: 
                     begin
-                        if (ask==1)
-                            begin
-                                PES<=`S2;
-                            end
-                            
-                       else
-                            begin
-                                PES<=`S1;                     
-                            end
+                    if (ask==1)
+                        begin
+                        PES=`S2;
+                        end                          
+                    else
+                        PES=`S1;                     
                      end
-               `S2: PES<=`S3;
+               `S2: PES=`S3;
                `S3: 
                     begin
-                        if (find==`validRegion)
-                            begin
-                                if(isOutputSelected==1)
-                                    begin
-                                        PES<=`S4;
-                                    end
-                                else
-                                    begin
-                                        PES<=`S1;                                    
-                                    end
-                              
-                            end
-                       if (find==`portError)
-                           begin
-                            PES<=`S1;
-                           
-                            end    
-                       else 
-                           begin
-                           PES <= `S3;
-                           end                        
+                    if (find==`validRegion)
+                        begin
+                        if(isOutputSelected==1)
+                            PES=`S4;
+                        else
+                            PES=`S1;                                    
+                        end
+                    else
+                        if (find==`portError)
+                            PES=`S1;   
+                        else 
+                            PES = `S3;                  
                     end
-               `S4: PES<=`S5;                       
-               `S5: PES<=`S1;                                
+               `S4: PES=`S5;                       
+               `S5: PES=`S1;                                
             endcase 
         end
-always@(posedge clock)
+    always@(posedge clock)
+        begin
+        if(!reset) 
             begin
+            ES<=PES;   
             case(ES)
-                //zera variáveis
+                //zera variï¿½veis
                 `S0:begin
                     //ceTable<=0;
                     sel<=0;
                     ack_h<=0;
-                    auxfree<=0;
                     sender_ant<=0;
-                    mux_out<=0;
-                    source<=0;
+                    for(i=0;i<`NPORT;i=i+1)
+                        begin
+                        auxfree[i]<=1;
+                        mux_out_a[i]<=0;
+                        source[i]<=0;
+                        end
                     end
                 //chega um header   
                 `S1:begin
@@ -149,7 +145,7 @@ always@(posedge clock)
                     end
                 `S4:begin
                     source[incoming] <= indice_dir;
-                    mux_out[indice_dir] <= incoming;
+                    mux_out_a[indice_dir] <= incoming;
                     auxfree[indice_dir] <= 0;
                     ack_h[sel] <= 1;
                     end
@@ -158,14 +154,37 @@ always@(posedge clock)
                     //ceTable <= '0';
                     end        
             endcase
-            sender_ant<=sender;
+            
             for(i=`EAST;i<=`LOCAL;i=i+1)
                 if (sender[i] == 0 & sender_ant[i] == 1)
+                    begin
+                    $display("t= %g i= %x sender=%x sender_ant=%x",$time,i,sender,sender_ant);
                     auxfree[source[i]] <= 1;
-            end
-            assign mux_in=source;
-            assign free=auxfree;
-            assign requests=auxfree & dir;
+                    //$display("",i,source[i]);
+                    //auxfree[i] <= 1;
+                    end
+
+           end
+
+        end
+        
+     reg [`NPORT-1:0] sender_ant_2;
+    always@(posedge clock) begin
+        if(!reset) begin
+           // $display("Always 1 %g, sender_ant: %x, sender: %x", $time, sender_ant, sender);
+            //sender_ant_2<=sender; 
+            sender_ant <= sender;//_ant_2;
+           // $display("Always 2 %g, sender_ant: %x, sender: %x", $time, sender_ant, sender);
+        end
+    end
+    always@(reset)
+        if (reset==1)
+           ES<=`S0;
+     
+    //assign mux_in_a=source; realocado para o always combinacional
+    assign free=auxfree;
+    assign requests=auxfree & dir;
+    
 
 
     endmodule

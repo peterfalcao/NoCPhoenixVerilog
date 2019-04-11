@@ -53,34 +53,3 @@ output reg[`NP_REGF-1:0] data_out_t );
             end
     endgenerate
 endmodule
-/*
-module crossbar #(parameter NPORT=5, parameter TAM_FLIT=16)(
-input [NPORT-1:0]data_av, sender, free, credit_i,
-input [TAM_FLIT-1:0] data_in [NPORT-1:0],
-input [2:0] tab_in [NPORT-1:0], 
-input [2:0] tab_out [NPORT-1:0],
-output [NPORT-1:0] data_ack, tx, 
-output [TAM_FLIT-1:0] data_out [NPORT-1:0]);
-    
-    localparam EAST=0;
-    localparam LOCAL=4;
-    genvar i;
-    generate
-        for(i=EAST; i<=LOCAL;i=i+1)
-            begin
-            assign tx[i]= (free[i]==0)?data_av[tab_out[i]]:0;
-            assign data_out[i]=(free[i]==0)?data_in[tab_out[i]]:0;
-            assign data_ack[i]= (data_av[i]==1)?credit_i[tab_in[i]]:0;
-            end
-    endgenerate
-endmodule*/
-/*
-regflit is std_logic_vector((TAM_FLIT-1) downto 0);
-regNport is std_logic_vector((NPORT-1) downto 0);tamanho do barramento         
-arrayNport_regflit is array((NPORT-1) downto 0) of regflit;       
-arrayNport_reg3 is array((NPORT-1) downto 0) of reg3; 
-reg3 is std_logic_vector(2 downto 0); 
-
-       
-
-*/

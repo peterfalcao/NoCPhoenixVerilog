@@ -4,11 +4,10 @@
 //-- CONSTANTES INDEPENDENTES
 //---------------------------------------------------------
 `define NPORT 5
-`define NROT 4
 `define EAST 0
 `define WEST 1
-`define SOUTH 2
-`define NORTH 3
+`define NORTH 2
+`define SOUTH 3
 `define LOCAL 4
 //--------------------------------------------------------
 //-- CONSTANT DEPENDENTE DA LARGURA DE BANDA DA REDE
@@ -16,6 +15,20 @@
 `define TAM_FLIT 16
 `define METADEFLIT (`TAM_FLIT/2)
 `define QUARTOFLIT (`TAM_FLIT/4)
+//---------------------------------------------------------
+//-- CONSTANTS DEPENDENTES DO NUMERO DE ROTEADORES
+//---------------------------------------------------------
+`define NUM_X 2
+`define NUM_Y 2
+`define NROT (`NUM_X*`NUM_Y)
+`define MIN_X 0
+`define MIN_Y 0
+`define MAX_X (`NUM_X-1)
+`define MAX_Y (`NUM_Y-1)
+//---------------------------------------------------------
+//-- CONSTANTS DEPENDENTES DA PROFUNDIDADE DA FILA
+//---------------------------------------------------------
+ `define TAM_BUFFER 15
 //---------------------------------------------------------
 //-- VARIAVEIS DO NOVO HARDWARE
 //---------------------------------------------------------
@@ -28,7 +41,7 @@
 //fim tipos de routercontrol
 //SWITCHCONTROL
 //STATE
-`define STATE 3
+`define STATE 5
 `define S0 0
 `define S1 1
 `define S2 2
@@ -43,6 +56,7 @@
 `define reg32 32
 `define NP_REGF (`TAM_FLIT*`NPORT)
 `define NP_REG3 (`reg3*`NPORT)
+`define NR_REGF (`NROT*`TAM_FLIT)
 // regNrot ([`NROT-1])
 // regNport [`NPORT-1:0]
 // regflit ([`TAM_FLIT-1:0]);
@@ -57,6 +71,5 @@
 // [`NROT-1: 0] arrayNrot_regflit [`TAM_FLIT-1:0];
 // [`NROT-1:0] arrayNrot_regmetadeflit [`METADE_FLIT-1:0];
 // [`NROT-1:0] arrayNrot_regNport [`NPORT-1:0];
-
 
 `endif

@@ -45,7 +45,7 @@ output [`ROUTERCONTROL-1:0]find
                    outputPort[`SOUTH]=1;
                else
                    begin  
-                   if (dest_y<local_y)
+                   if (dest_y>local_y)
                        outputPort[`NORTH]=1;
                    else
                        outputPort[`LOCAL]=1; 
