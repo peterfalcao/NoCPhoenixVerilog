@@ -1,16 +1,20 @@
-SOURCES= $(wildcard *.v)
-SOURCES+= defines.vh
+SOURCES= $(wildcard rtl/*.v)
+SOURCES+= rtl/defines.vh
 #SOURCES-= topNOC.v
 TOP= NOC
-INFILES= $(wildcard In/*.txt)
-all: $(SOURCES) main.cpp noc.cpp
-	verilator -Wall --cc $(SOURCES) --top-module $(TOP) --trace --exe main.cpp noc.cpp -CFLAGS "-std=c++0x -Wall"
+INFILES= $(wildcard ./tests/F003/In/*.txt)
+
+all: $(SOURCES) tb/main.cpp tb/noc.cpp
+	verilator -Wall --cc $(SOURCES) --top-module $(TOP) --trace -I./rtl --exe  tb/main.cpp tb/noc.cpp -CFLAGS "-std=c++0x -Wall"
 	make -j -C obj_dir -f VNOC.mk VNOC
 
 run: all
 	obj_dir/VNOC $(INFILES)
 
-.PHONY: help clean
+tests: all
+	python3 traffic_test.py
+
+.PHONY: help clean test
 
 clean:
 	rm -rf obj_dir
