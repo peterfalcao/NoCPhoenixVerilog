@@ -5,7 +5,7 @@ TOP= NOC
 INFILES= $(wildcard ./tests/F007/In/*.txt)
 
 all: $(SOURCES) tb/main.cpp tb/noc.cpp
-	verilator -Wall --cc $(SOURCES) --top-module $(TOP) --trace -I./rtl --exe  tb/main.cpp tb/noc.cpp -CFLAGS "-std=c++0x -Wall"
+	verilator -Wall --cc $(SOURCES) --top-module $(TOP) --trace -I./rtl --exe  tb/main.cpp tb/noc.cpp -CFLAGS "-std=c++0x -Wall" -D__VERILATOR
 	make -j -C obj_dir -f VNOC.mk VNOC
 
 run: all

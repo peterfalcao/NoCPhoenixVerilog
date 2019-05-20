@@ -3,12 +3,18 @@
 module NOC(
    input [`NROT-1:0]rxLocal,
    input reset,clock,
+`ifndef __VERILATOR
    input [`NR_REGF-1:0]data_inLocal_flit,
    output [`NR_REGF-1:0]data_outLocal_flit,
+`endif
    output [`NROT-1:0] credit_oLocal,clock_txLocal,txLocal
    );
-//import "DPI-C" function int getflit (input int router);
-//import "DPI-C" function void saveData (input int flit, input int router);
+
+`ifdef __VERILATOR
+    import "DPI-C" function int getflit (input int router);
+    import "DPI-C" function void saveData (input int flit, input int router);
+    reg [`TAM_FLIT-1:0]data_inLocal_aux[`NROT-1:0];
+`endif
 /* verilator lint_off UNOPTFLAT */
     wire [`NP_REGF-1:0]data_in[`NROT-1:0];
     wire [`NPORT-1:0]rx[`NROT-1:0];
@@ -18,7 +24,7 @@ module NOC(
     wire [`NPORT-1:0] clock_tx[`NROT-1:0];
     wire [`NPORT-1:0] tx[`NROT-1:0];
     wire [`NP_REGF-1:0] data_out[`NROT-1:0]; 
-    reg [`TAM_FLIT-1:0]data_inLocal_aux[`NROT-1:0];
+    
 
     /* verilator lint_off WIDTH */
     function [`TAM_FLIT-1:0]addr;
@@ -93,28 +99,39 @@ module NOC(
         assign credit_i[i][3]= credit_o[i-1][2];
         end
     //LOCAL
-//    always@(negedge clock)
-//        begin
-//            /* verilator lint_off WIDTH */
-//            data_inLocal_aux[i]<=getflit(i);
-//            /* verilator lint_on WIDTH */
-//        end
-//    always@(posedge clock)
-//        begin
-//            //int j;
-//            //for(j=0;j<`NROT-1;j=j+1)
-//           // begin
-//                if (tx[i][`LOCAL]!=0) 
-//                    saveData({{16'b0},{data_out[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4]}},i);
-//           // end
-//        end
+`ifdef __VERILATOR    
+    always@(negedge clock)
+        begin
+            /* verilator lint_off WIDTH */
+            data_inLocal_aux[i]<=getflit(i);
+            /* verilator lint_on WIDTH */
+        end
+    always@(posedge clock)
+        begin
+          //  int j;
+          //  for(j=0;j<`NROT-1;j=j+1)
+          //  begin
+                if (tx[i][`LOCAL]!=0) 
+                    saveData({{16'b0},{data_out[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4]}},i);
+          //  end
+       end
+`endif
     assign clock_rx[i][`LOCAL]=clock;
-    assign data_in[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4]=/*data_inLocal_aux[i];*/data_inLocal_flit[i*`TAM_FLIT+:`TAM_FLIT];
+
+`ifdef __VERILATOR
+    assign data_in[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4]=data_inLocal_aux[i];
+`else
+    assign data_in[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4]=data_inLocal_flit[i*`TAM_FLIT+:`TAM_FLIT];
+`endif    
+
     assign credit_i[i][`LOCAL]= tx[i][`LOCAL];
-    assign rx[i][`LOCAL]=rxLocal[i];
-    
+    assign rx[i][`LOCAL]=rxLocal[i];  
     assign clock_txLocal[i]=clock_tx[i][`LOCAL];
+
+`ifndef __VERILATOR
     assign data_outLocal_flit[i*`TAM_FLIT+:`TAM_FLIT]=data_out[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4];
+`endif
+
     assign credit_oLocal[i]=credit_o[i][`LOCAL];
     assign txLocal[i]=tx[i][`LOCAL];
     end
