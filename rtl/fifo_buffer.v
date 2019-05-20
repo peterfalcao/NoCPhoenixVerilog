@@ -8,8 +8,8 @@ output reg [$clog2(DEPTH):0]counter
 reg [WIDTH-1:0] buff [DEPTH-1:0];
 reg [$clog2(DEPTH)-1:0] first;
 reg [$clog2(DEPTH)-1:0] last ;
-reg [$clog2(DEPTH)-1:0] aux_first;
-reg [$clog2(DEPTH)-1:0] aux_last ;
+reg [($clog2(DEPTH))-1:0] aux_first;
+reg [($clog2(DEPTH))-1:0] aux_last ;
 reg is_full,aux_is_full,is_empty;
 
 always@(posedge clock)

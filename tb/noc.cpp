@@ -11,6 +11,7 @@ NOC::NOC(){// Cria o Objeto e inicializa as variáveis necessárias
 	pkg_counter_out= new int[num_router];
 	has_pkg_aux= new bool[num_router];
 	flit_array= new int[num_router];
+	done= new int[num_router];
 	this->aOut_numpkg= new int[num_router];
 	this->arrayOut = new int**[num_router];
 	this->array3D=new int**[num_router];
@@ -23,7 +24,9 @@ NOC::NOC(){// Cria o Objeto e inicializa as variáveis necessárias
 		has_pkg_aux[i]=false;
 		rt[i].id=i;
 		flit_array[i]=0;
+		done[i]=0;
 	}
+	status=0;
 }
 
 NOC::~NOC(){//Deleta o objeto e libera a memoria dos arrays criados
@@ -83,6 +86,10 @@ void NOC::open_trace(const char* path) {
 		trace_f->open(path);
 	}
 
+}
+
+int NOC::getStatus(){
+	return this->status;
 }
 
 void NOC::initPkgChecker(){
@@ -189,6 +196,8 @@ void NOC::sendpackage(){
 void NOC::sendflit(int router){
 	int flit=0;
 	if(this->has_pkg(router)){
+		//if(router==5 &&flit_counter[5]==0)
+		//	cout<<"mtime: "<<this->mtime<<endl;
 		if(this->flit_counter[router]<num_flit+1){//num_flit
 			flit= this->getflit(router);
 			this->insert_data(flit,router);
@@ -245,7 +254,6 @@ void NOC::disable_rx(int router){
 
 void NOC::fillDataOut(int flit, int router){
 	//cout<<"entrou"<<endl;
-	long int aux;
 	long int mask;
 	int txaux;
 	int sender;
@@ -257,6 +265,20 @@ void NOC::fillDataOut(int flit, int router){
 		
 		this->flit_counter_out[router]++;
 	}
+
+	if((this->pkg_counter_out[router]==this->aOut_numpkg[router]-1) && (flit_counter_out[router]>num_flit-1)){
+			//cout<<"entrou1\n";
+			//cout<<"entrou2\n";
+			this->done[router]=1;
+			uint32_t aux=0;
+			for(uint32_t i=0;i<num_router;i++)
+				if(this->done[i]==1)
+					aux=aux+1;
+			if(aux==num_router)
+				this->status=1;
+
+		}
+
 	if(flit_counter_out[router]>num_flit-1){
 		this->flit_counter_out[router]=0;
 		if(this->pkg_counter_out[router]<this->aOut_numpkg[router]){
@@ -265,19 +287,22 @@ void NOC::fillDataOut(int flit, int router){
 				cout<<"n de pkg: "<<aOut_numpkg[router]<<endl;
 				}*/
 			this->pkg_counter_out[router]++;	
-		}		
+		}
 	}
+
+
 	//cout<<"terminou"<<endl;
 }
 
 void NOC::checkPkg(){
 	int router;
-	int d;
+	int failpkg;
 	bool sucess;
 	cout<<"*******************Checando a NOC*******************"<<endl;
 	for(uint32_t i=0;i<num_router;i++){
 		cout<<"-----------------Iniciando Checagem do Roteador "<<hex<<rt[i].addr<<" | "<< i <<"-----------------"<<endl;
 		sucess =true;
+		failpkg=0;
 		for(uint32_t j=0;j<num_pkg;j++){
 			int dest=this->array3D[i][j][1];
 			router=calculateRouter(dest);
@@ -299,14 +324,15 @@ void NOC::checkPkg(){
 			//cout<<"passou do while\n";
 			if(x!=num_flit){
 				sucess= false;
-				//cout<<"Pacote "<<dec<<j<<" do roteador "<<hex<<rt[i].addr<<" nao chegou no destino, o roteador: "<<hex<<rt[router].addr<<endl;
+				failpkg++;
+			//	cout<<"Pacote "<<dec<<j<<" do roteador "<<hex<<rt[i].addr<<" nao chegou no destino, o roteador: "<<hex<<rt[router].addr<<endl;
 			}	
 		}
 		//cout<<"passou do for\n";
 		if(sucess)
 			cout<<"Todos os pacotes do roteador "<<hex<<rt[i].addr<<" chegaram ao destino com sucesso"<<endl;
 		else
-			cout<<"Pacote(s) do roteador "<<hex<<rt[i].addr<<" nao chegaram ao destino"<<endl;
+			cout<<dec<<failpkg<<" Pacote(s) do roteador "<<hex<<rt[i].addr<<" nao chegaram ao destino"<<endl;
 	}
 	
 }

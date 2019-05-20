@@ -39,17 +39,18 @@ int main(int argc, char **argv) {//verarv
 
 	}
 	dut->initPkgChecker();
-	//dut->open_trace((path+".vcd").c_str());
+	dut->open_trace((path+".vcd").c_str());
 	dut->reset();
 	//cout<<"Noc Resetada"<<endl;
 	dut->tick();	
 	// Tick the clock until we are done
-	while(mtime<30000) {
+	while(mtime<800050 && !dut->getStatus()) {
 		dut->tick();
 		//verificar o flit correto e fazer um if para o tempo de envio
 		mtime++;
 	} 
-	//cout<<"terminou execução"<<endl;
+	cout<<"terminou execução com mtime: "<<mtime<<endl;
+	cout<<"status= "<<dut->getStatus()<<endl;
 	dut->checkPkg();
 	delete dut;
 	return 0;//RETORNAR O CHECKPKG

@@ -1,23 +1,3 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 25.02.2019 12:44:52
-// Design Name: 
-// Module Name: crossbar
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 `include "defines.vh"
 module crossbar (
 input [`NPORT-1:0]data_av, free, credit_i,
@@ -28,19 +8,20 @@ output [`NPORT-1:0] data_ack, tx,
 output reg[`NP_REGF-1:0] data_out_t );
     
     genvar i;
-    reg [15:0]data_in[4:0];
-    reg [2:0]tab_in[4:0];
-    reg [2:0]tab_out[4:0];
-    wire [15:0]data_out[4:0];
+    integer aux_var;
+    reg [`TAM_FLIT-1:0]data_in[`NPORT-1:0];
+    reg [`reg3-1:0]tab_in[`NPORT-1:0];
+    reg [`reg3-1:0]tab_out[`NPORT-1:0];
+    wire [`TAM_FLIT-1:0]data_out[`NPORT-1:0];
     
     always@(*)
         begin
-        if(`NPORT==5)
+        for(aux_var=0;aux_var<`NPORT;aux_var=aux_var+1)
             begin
-            {data_in[4],data_in[3],data_in[2],data_in[1],data_in[0]}=data_in_t; 
-            {tab_out[4],tab_out[3],tab_out[2],tab_out[1],tab_out[0]}=tab_out_t;
-            {tab_in[4],tab_in[3],tab_in[2],tab_in[1],tab_in[0]}=tab_in_t;
-            data_out_t={data_out[4],data_out[3],data_out[2],data_out[1],data_out[0]}; 
+            data_in[aux_var]=data_in_t[aux_var*`TAM_FLIT+:`TAM_FLIT]; 
+            tab_out[aux_var]=tab_out_t[aux_var*`reg3+:`reg3];
+            tab_in[aux_var]=tab_in_t[aux_var*`reg3+:`reg3];
+            data_out_t[aux_var*`TAM_FLIT+:`TAM_FLIT]=data_out[aux_var]; 
             end
         end
         

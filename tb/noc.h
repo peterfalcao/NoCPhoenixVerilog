@@ -11,7 +11,7 @@ using namespace std;
 #include "VNOC.h"
 #include "verilated_vcd_c.h"
 
-#define num_pkg 24
+#define num_pkg 1200
 #define num_flit 9
 #define num_router 9
 #define num_y 3 //altura da NOC
@@ -35,6 +35,8 @@ class NOC{
 	int id;
 	}rt[num_router];
 	int* flit_array;
+	int status;
+	int* done;
 public:
 	NOC();
 	~NOC();
@@ -47,6 +49,7 @@ public:
 	void initPkgChecker();
 	int getdata (int i);
 	void fillDataOut(int flit, int router);
+	int getStatus();
 private:
 	void sendpackage();
 	void sendflit(int router);

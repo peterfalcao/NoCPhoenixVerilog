@@ -28,7 +28,7 @@
 //---------------------------------------------------------
 //-- CONSTANTS DEPENDENTES DA PROFUNDIDADE DA FILA
 //---------------------------------------------------------
- `define TAM_BUFFER 9
+ `define TAM_BUFFER 20
 //---------------------------------------------------------
 //-- VARIAVEIS DO NOVO HARDWARE
 //---------------------------------------------------------
@@ -39,6 +39,7 @@
 `define faultPort 2
 `define portError 3
 //fim tipos de routercontrol
+
 //SWITCHCONTROL
 //STATE
 `define STATE 5
@@ -57,19 +58,5 @@
 `define NP_REGF (`TAM_FLIT*`NPORT)
 `define NP_REG3 (`reg3*`NPORT)
 `define NR_REGF (`NROT*`TAM_FLIT)
-// regNrot ([`NROT-1])
-// regNport [`NPORT-1:0]
-// regflit ([`TAM_FLIT-1:0]);
-// regmetadeflit [`METADE_FLIT-1:0]
-// regquartoflit [`QUARTOFLIT-1:0] 
-// pointer [`TAM_POINTER-1:0];
-// [`TAM_BUFFER-1:0]buff  [`TAM_FLIT-1:0];
-// [`NPORT-1:0] arrayNport_reg3 [`reg3 -1:0]
-// [`NPORT-1:0] arrayNport_reg8[`reg8 -1:0]
-// [`NPORT-1:0] arrayNport_regflit [`TAM_FLIT-1:0];
-//  [`NROT-1:0] arrayNrot_reg3 [`reg3 -1:0]
-// [`NROT-1: 0] arrayNrot_regflit [`TAM_FLIT-1:0];
-// [`NROT-1:0] arrayNrot_regmetadeflit [`METADE_FLIT-1:0];
-// [`NROT-1:0] arrayNrot_regNport [`NPORT-1:0];
 
 `endif

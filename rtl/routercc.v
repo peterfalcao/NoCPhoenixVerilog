@@ -1,38 +1,18 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 27.02.2019 15:43:24
-// Design Name: 
-// Module Name: routercc
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
 `include "defines.vh"
 module routercc #(parameter address=`TAM_FLIT)(
     input clock,reset,
-    input [`NPORT-1:0] credit_i, clock_rx, rx,//regNport
-    input [`NP_REGF-1:0] data_in, //arraynportregflit
-    output [`NPORT-1:0] credit_o, clock_tx, tx,//regNport 
-    output [`NP_REGF-1:0] data_out//arraynportregflit
+    input [`NPORT-1:0] credit_i, clock_rx, rx,
+    input [`NP_REGF-1:0] data_in, 
+    output [`NPORT-1:0] clock_tx, tx, 
+    output [`NPORT-1:0] credit_o,
+    output [`NP_REGF-1:0] data_out
     );
     genvar i;
-    wire [`NPORT-1:0]h, ack_h, data_av, sender, data_ack; //regNport
-    reg [`TAM_FLIT-1:0]data_inb[`NPORT-1:0];// arrayNport_regflit
-    wire [`TAM_FLIT-1:0]data_outb[`NPORT-1:0];// arrayNport_regflit
-    wire [`NPORT-1:0]free;//regNport
-    
+    integer aux_var;
+    wire [`NPORT-1:0]h, ack_h, data_av, sender, data_ack; 
+    reg [`TAM_FLIT-1:0]data_inb[`NPORT-1:0];
+    wire [`TAM_FLIT-1:0]data_outb[`NPORT-1:0];
+    wire [`NPORT-1:0]free;   
     reg [`NP_REGF-1:0]data_in_t;
     wire [`NP_REG3-1:0]mux_in_t;
     wire [`NP_REG3-1:0]mux_out_t;
@@ -47,7 +27,7 @@ module routercc #(parameter address=`TAM_FLIT)(
             .clock_rx(clock_rx[i]),//nao usa clock_rx ainda
             .ack_h(ack_h[i]),
             .data_ack(data_ack[i]),
-            .data_in(data_inb[i]),//regflict
+            .data_in(data_inb[i]),
             .credit_o(credit_o[i]),
             .h(h[i]),
             .data_av(data_av[i]),
@@ -79,14 +59,13 @@ module routercc #(parameter address=`TAM_FLIT)(
         .tx(tx), 
         .data_out_t(data_out));   
     
-
     always@(*)
-        if(`NPORT==5)
+        for (aux_var=0;aux_var<`NPORT;aux_var=aux_var+1)
             begin
-            {data_inb[4],data_inb[3],data_inb[2],data_inb[1],data_inb[0]}=data_in;
-            data_in_t={data_outb[4],data_outb[3],data_outb[2],data_outb[1],data_outb[0]};
+            data_inb[aux_var]=data_in[aux_var*`TAM_FLIT+:`TAM_FLIT];
+            data_in_t[aux_var*`TAM_FLIT+:`TAM_FLIT]=data_outb[aux_var];
             end
-        
+
     generate
         for( i=0;i<=(`NPORT-1);i=i+1)
         begin

@@ -1,24 +1,3 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 26.02.2019 14:58:09
-// Design Name: 
-// Module Name: RoundRobinArbiter
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
 `include"defines.vh"
 module RoundRobinArbiter #(parameter size=`NPORT)
 (
@@ -43,15 +22,14 @@ always@(posedge enable)
         begin
         if(exit_aux==1)
         begin
-        if(requestCheck==size-1 )//& exit_aux==1)
+        if(requestCheck==size-1 )
             begin
             requestCheck=0;
             end
         else
-            //if(exit_aux==1)
-                requestCheck=requestCheck+1;
+            requestCheck=requestCheck+1;
             
-        if(requests[requestCheck]==1 )//& exit_aux==1)
+        if(requests[requestCheck]==1 )
             begin
             selectedPort=requestCheck;
             exit_aux=0;//simula o quit do vhdl

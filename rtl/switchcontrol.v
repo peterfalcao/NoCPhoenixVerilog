@@ -1,23 +1,3 @@
-`timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 27.02.2019 17:16:16
-// Design Name: 
-// Module Name: switchcontrol
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 `include"defines.vh"
 module switchcontrol #(parameter address=`TAM_FLIT)
     ( input clock,
@@ -30,11 +10,11 @@ module switchcontrol #(parameter address=`TAM_FLIT)
       output reg [`NP_REG3-1:0] mux_in,
       output reg  [`NP_REG3-1:0] mux_out      
     );
-    //output  [`reg3 -1:0] mux_in,
-    //      output reg  [`reg3 -1:0] mux_out  
+
+    integer aux_var;
     reg [`reg3-1:0]mux_in_a[`NPORT-1:0];
     reg [`reg3-1:0]mux_out_a[`NPORT-1:0];
-    reg [`TAM_FLIT-1:0]data[`NPORT-1:0];// arrayNport_regflit
+    reg [`TAM_FLIT-1:0]data[`NPORT-1:0];
     reg [$clog2(`STATE)-1:0] ES,PES;
     reg ask=0;
     reg enable;
@@ -57,22 +37,21 @@ module switchcontrol #(parameter address=`TAM_FLIT)
     routingMechanism #(address)rm1(.dest(header),.outputPort(dir),.find(find));
     FixedPriorityArbiter fp1(.requests(requests),.enable(1'b1),.isOutputSelected(isOutputSelected),.selectedOutput(selectedOutput)); 
 
-    always@(*)
-        begin
+    always@(*)begin
         for(i=0;i<`NPORT;i=i+1)
             mux_in_a[i]=source[i];
-        if(`NPORT==5)
-            begin
-            {data[4],data[3],data[2],data[1],data[0]}=data_in;
-            mux_in={mux_in_a[4],mux_in_a[3],mux_in_a[2],mux_in_a[1],mux_in_a[0]};
-            mux_out={mux_out_a[4],mux_out_a[3],mux_out_a[2],mux_out_a[1],mux_out_a[0]};
-            end
+
+        for(aux_var=0;aux_var<`NPORT;aux_var=aux_var+1)begin
+            data[aux_var]=data_in[aux_var*`TAM_FLIT+:`TAM_FLIT];
+            mux_in[aux_var*`reg3+:`reg3]=mux_in_a[aux_var];
+            mux_out[aux_var*`reg3+:`reg3]=mux_out_a[aux_var];
+        end
+
         ask =(|h)? 1:0;
         incoming=sel;
         header=data[incoming];
-        
-       
-        end
+              
+    end
         
     always@(ES, ask, find, isOutputSelected) 
         begin
@@ -104,7 +83,9 @@ module switchcontrol #(parameter address=`TAM_FLIT)
                             PES = `S3;                  
                     end
                `S4: PES=`S5;                       
-               `S5: PES=`S1;                                
+               `S5: PES=`S1;  
+               default:PES=`S0;
+
             endcase 
         end
     always@(posedge clock)
@@ -165,16 +146,11 @@ module switchcontrol #(parameter address=`TAM_FLIT)
                     //auxfree[i] <= 1;
                     end
 
+            sender_ant <= sender;
            end
 
         end
-    always@(posedge clock) begin
-        if(!reset) begin
-            sender_ant <= sender;//_ant_2;
-        end
-    end
    
-    //assign mux_in_a=source; realocado para o always combinacional
     assign free=auxfree;
     assign requests=auxfree & dir;
     
