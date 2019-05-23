@@ -1,13 +1,13 @@
 `include"defines.vh"
 
-module NOC(
-   input [`NROT-1:0]rxLocal,
+module NOC_MESH(
+   input [`NROT-1:0]rxLocal,credit_iLocal,
    input reset,clock,
 `ifndef __VERILATOR
    input [`NR_REGF-1:0]data_inLocal_flit,
    output [`NR_REGF-1:0]data_outLocal_flit,
 `endif
-   output [`NROT-1:0] credit_oLocal,clock_txLocal,txLocal
+   output [`NROT-1:0] credit_oLocal,txLocal
    );
 
 `ifdef __VERILATOR
@@ -124,9 +124,9 @@ module NOC(
     assign data_in[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4]=data_inLocal_flit[i*`TAM_FLIT+:`TAM_FLIT];
 `endif    
 
-    assign credit_i[i][`LOCAL]= tx[i][`LOCAL];
+    assign credit_i[i][`LOCAL]= credit_iLocal[i];
     assign rx[i][`LOCAL]=rxLocal[i];  
-    assign clock_txLocal[i]=clock_tx[i][`LOCAL];
+    
 
 `ifndef __VERILATOR
     assign data_outLocal_flit[i*`TAM_FLIT+:`TAM_FLIT]=data_out[i][(`TAM_FLIT*5)-1:`TAM_FLIT*4];
