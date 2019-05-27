@@ -1,12 +1,12 @@
 # Phoenix NoC- Verilog
 
-This project is a implementation of the Phoenix NOC (originally designed in VHDL) using the Verilog HDL.
+This project is a implementation of the Phoenix NoC (originally designed in VHDL) using the Verilog HDL.
 
 ### Configuration
 
 The files here configure a 3x3 NOC, to receive packages with 9 flits of 16 bits each.
     
-To change the size of the NOC: rtl/defines.vh change NUM_X and NUM_Y to the number of routers you want in each axis. Then in tb/noc.h change the defines num_router and num_y;
+To change the size of the NoC: rtl/defines.vh change NUM_X and NUM_Y to the number of routers you want in each axis. Then in tb/noc.h change the defines num_router and num_y;
 
 To change the size of the flits in a package, in rtl/defines.vh change TAM_BUFFER so one package can fit in the buffer.
 
