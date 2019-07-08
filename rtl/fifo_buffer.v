@@ -1,9 +1,9 @@
 `include "defines.vh"
 module fifo_buffer #(parameter WIDTH=`TAM_FLIT, DEPTH=`TAM_BUFFER)(
-input clock, reset,push,pull,
-input [WIDTH-1:0]tail,
-output [WIDTH-1:0] head,
-output reg [$clog2(DEPTH):0]counter
+input i_clk, i_rst,i_push,i_pull,
+input [WIDTH-1:0]i_tail,
+output [WIDTH-1:0] o_head,
+output reg [$clog2(DEPTH):0]o_counter
 );
 reg [WIDTH-1:0] buff [DEPTH-1:0];
 reg [$clog2(DEPTH)-1:0] first;
@@ -12,9 +12,9 @@ reg [($clog2(DEPTH))-1:0] aux_first;
 reg [($clog2(DEPTH))-1:0] aux_last ;
 reg is_full,aux_is_full,is_empty;
 
-always@(posedge clock)
+always@(posedge i_clk)
 begin
-if(reset)
+if(!i_rst)
     begin
     last<=0;
     first<=0;
@@ -27,15 +27,15 @@ else
     aux_is_full=is_full;
     aux_last=last;
     aux_first=first;
-    if((!is_empty)&pull)
+    if((!is_empty)&i_pull)
         begin
         aux_first=(aux_first== DEPTH-1)?0:(aux_first+1);
         aux_is_full=0;
         is_empty<=(aux_first==aux_last)?1:0;
         end
-    if((!aux_is_full)&push)
+    if((!aux_is_full)&i_push)
         begin
-        buff[aux_last]<=tail;
+        buff[aux_last]<=i_tail;
         aux_last=(aux_last== DEPTH-1)?0:(aux_last+1);
         is_empty<=0;
         aux_is_full=(aux_first==aux_last)?1:0;
@@ -48,8 +48,8 @@ else
 end
 
 always@(*)
-    counter=is_full?DEPTH:(last>=first?(last-first):(DEPTH-(first-last)));
+    o_counter=is_full?DEPTH:(last>=first?(last-first):(DEPTH-(first-last)));
 
-assign head=buff[first];
+assign o_head=buff[first];
 
 endmodule

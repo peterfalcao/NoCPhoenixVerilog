@@ -1,25 +1,25 @@
 `include"defines.vh"
 module FixedPriorityArbiter #(parameter size=`NPORT)
 (
-input [size-1:0] requests,
-input enable,
-output reg isOutputSelected,
-output reg [$clog2(size)-1:0] selectedOutput 
+input [size-1:0] i_requests,
+input i_enable,
+output reg o_isOutputSelected,
+output reg [$clog2(size)-1:0] o_selectedOutput 
  );
     
 reg auxDone,exit_aux;
 reg [$clog2(size)-1:0]auxSelect =0;
 integer i;
-    always@(requests,enable)
+    always@(i_requests,i_enable)
         begin
         auxDone=0;
         auxSelect =0;
-        if(enable==1)
+        if(i_enable==1)
             begin  
             exit_aux=0;              
             for (i = 0; i < size; i = i +1) 
                 begin
-                if(requests[i]==1 & exit_aux==0)
+                if(i_requests[i]==1 & exit_aux==0)
                     begin
                     /* verilator lint_off WIDTH */
                     auxSelect=i;
@@ -29,8 +29,8 @@ integer i;
                     end
                 end            
             end
-        isOutputSelected= auxDone;
-        selectedOutput= auxSelect;  
+        o_isOutputSelected= auxDone;
+        o_selectedOutput= auxSelect;  
         end
      
 endmodule

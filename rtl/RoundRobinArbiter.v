@@ -1,10 +1,10 @@
 `include"defines.vh"
 module RoundRobinArbiter #(parameter size=`NPORT)
 (
-input [size-1:0] requests,
-input enable,
-output isOutputSelected,
-output reg [$clog2(size)-1:0] selectedOutput 
+input [size-1:0] i_requests,
+input i_enable,
+output o_isOutputSelected,
+output reg [$clog2(size)-1:0] o_selectedOutput 
  );
 
 reg [$clog2(size)-1:0] lastport=0;
@@ -12,7 +12,7 @@ reg [$clog2(size)-1:0] selectedPort=0 ;
 reg [$clog2(size)-1:0] requestCheck;
 reg exit_aux;
 integer i;
-always@(posedge enable)
+always@(posedge i_enable)
     begin 
     /* verilator lint_off BLKSEQ */
     requestCheck=lastport;
@@ -29,7 +29,7 @@ always@(posedge enable)
         else
             requestCheck=requestCheck+1;
             
-        if(requests[requestCheck]==1 )
+        if(i_requests[requestCheck]==1 )
             begin
             selectedPort=requestCheck;
             exit_aux=0;//simula o quit do vhdl
@@ -38,8 +38,8 @@ always@(posedge enable)
         end     
     /* verilator lint_on BLKSEQ */
     lastport<=selectedPort;
-    selectedOutput<=selectedPort;
+    o_selectedOutput<=selectedPort;
     end
     
-    assign isOutputSelected=enable;
+    assign o_isOutputSelected=i_enable;
 endmodule

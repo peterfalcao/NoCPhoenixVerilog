@@ -1,9 +1,9 @@
 `include "defines.vh"
 module phoenix_buffer #(DEPTH=`TAM_BUFFER)(
-input clock, reset,rx, clock_rx,ack_h,data_ack,
-input [`TAM_FLIT-1:0] data_in,
-output credit_o,h,data_av,sender,
-output [`TAM_FLIT-1:0] data);
+input i_clk, i_rst,i_rx, i_clk_rx,i_ack_h,i_data_ack,
+input [`TAM_FLIT-1:0] i_data,
+output o_credit,o_h,o_data_av,o_sender,
+output [`TAM_FLIT-1:0] o_data);
 
 
 localparam REQ_ROUTING=0;
@@ -18,21 +18,21 @@ reg next_state, current_state;
 integer flit_index;
 
 fifo_buffer CBUF(
-.reset(reset),
-.clock(clock_rx),
-.tail(data_in),
-.push(rx),
-.pull(pull),
-.counter(counter),
-.head(bufferhead)
+.i_rst(i_rst),
+.i_clk(i_clk_rx),
+.i_tail(i_data),
+.i_push(i_rx),
+.i_pull(pull),
+.o_counter(counter),
+.o_head(bufferhead)
 );
 
-always@(current_state or ack_h or sent)
+always@(current_state or i_ack_h or sent)
 begin
     next_state=current_state;
     case(current_state)
     REQ_ROUTING:
-        if (ack_h)
+        if (i_ack_h)
             next_state=SEND_DATA;
     SEND_DATA:
         if (sent)
@@ -40,9 +40,9 @@ begin
     endcase
 end
 
-always@(posedge clock)
+always@(posedge i_clk)
     begin
-    if (reset)
+    if (!i_rst)
         begin
         current_state<= REQ_ROUTING;
         sent<=0;
@@ -52,7 +52,7 @@ always@(posedge clock)
         current_state<= next_state;
         if(sending)
             begin
-            if (data_ack & has_data)
+            if (i_data_ack & has_data)
                 begin
                 sent<=0;
                 if (flit_index==1)
@@ -86,12 +86,12 @@ begin
     endcase
 end
 
-assign data= bufferhead;
-assign data_av= has_data_and_sending;
-assign credit_o=((counter!=DEPTH) | (pull==1))?1:0;
-assign sender=sending;
-assign h=has_data &(!sending);
-assign pull= data_ack &has_data_and_sending;
+assign o_data= bufferhead;
+assign o_data_av= has_data_and_sending;
+assign o_credit=((counter!=DEPTH) | (pull==1))?1:0;
+assign o_sender=sending;
+assign o_h=has_data &(!sending);
+assign pull= i_data_ack &has_data_and_sending;
 assign has_data= (counter!=0)?1:0;
 assign has_data_and_sending= has_data & sending;
 

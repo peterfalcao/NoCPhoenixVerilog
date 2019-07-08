@@ -1,11 +1,11 @@
 `include "defines.vh"
 module routercc #(parameter address=`TAM_FLIT)(
-    input clock,reset,
-    input [`NPORT-1:0] credit_i, clock_rx, rx,
-    input [`NP_REGF-1:0] data_in, 
-    output [`NPORT-1:0] clock_tx, tx, 
-    output [`NPORT-1:0] credit_o,
-    output [`NP_REGF-1:0] data_out
+    input i_clk,i_rst,
+    input [`NPORT-1:0] i_credit, i_clk_rx, i_rx,
+    input [`NP_REGF-1:0] i_data, 
+    output [`NPORT-1:0] o_clk_tx, o_tx, 
+    output [`NPORT-1:0] o_credit,
+    output [`NP_REGF-1:0] o_data
     );
     genvar i;
     integer aux_var;
@@ -21,55 +21,55 @@ module routercc #(parameter address=`TAM_FLIT)(
         for(i=`EAST; i<=`LOCAL;i=i+1)
             begin
             phoenix_buffer buffer(
-            .clock(clock), 
-            .reset(reset),
-            .rx(rx[i]), 
-            .clock_rx(clock_rx[i]),//nao usa clock_rx ainda
-            .ack_h(ack_h[i]),
+            .i_clk(i_clk), 
+            .i_rst(i_rst),
+            .i_rx(i_rx[i]), 
+            .i_clk_rx(i_clk_rx[i]),//nao usa i_clk_rx ainda
+            .o_ack_h(ack_h[i]),
             .data_ack(data_ack[i]),
-            .data_in(data_inb[i]),
-            .credit_o(credit_o[i]),
+            .i_data(data_inb[i]),
+            .o_credit(o_credit[i]),
             .h(h[i]),
             .data_av(data_av[i]),
             .sender(sender[i]),
-            .data(data_outb[i]));
+            .o_data(data_outb[i]));
             end
     endgenerate
     
     switchcontrol #(.address(address)) swctrl
-        (  .clock(clock),
-           .reset(reset),
-           .h(h),
-           .ack_h(ack_h),
-           .data_in(data_in_t),
-           .sender(sender), 
-           .free(free),
-           .mux_in(mux_in_t),
-           .mux_out(mux_out_t)
+        (  .i_clk(i_clk),
+           .i_rst(i_rst),
+           .i_h(h),
+           .o_ack_h(ack_h),
+           .i_data(data_in_t),
+           .i_sender(sender), 
+           .o_free(free),
+           .o_mux_in(mux_in_t),
+           .o_mux_out(mux_out_t)
         );
         
     crossbar crossbar(
-        .data_av(data_av),
-        .free(free),
-        .credit_i(credit_i),
-        .data_in_t(data_in_t),
-        .tab_in_t(mux_in_t), 
-        .tab_out_t(mux_out_t),
-        .data_ack(data_ack),
-        .tx(tx), 
-        .data_out_t(data_out));   
+        .i_data_av(data_av),
+        .i_free(free),
+        .i_credit(i_credit),
+        .i_data_t(data_in_t),
+        .i_tab_in_t(mux_in_t), 
+        .i_tab_out_t(mux_out_t),
+        .o_data_ack(data_ack),
+        .o_tx(o_tx), 
+        .o_data_t(o_data));   
     
     always@(*)
         for (aux_var=0;aux_var<`NPORT;aux_var=aux_var+1)
             begin
-            data_inb[aux_var]=data_in[aux_var*`TAM_FLIT+:`TAM_FLIT];
+            data_inb[aux_var]=i_data[aux_var*`TAM_FLIT+:`TAM_FLIT];
             data_in_t[aux_var*`TAM_FLIT+:`TAM_FLIT]=data_outb[aux_var];
             end
 
     generate
         for( i=0;i<=(`NPORT-1);i=i+1)
         begin
-            assign clock_tx[i]=clock;
+            assign o_clk_tx[i]=i_clk;
         end
     endgenerate 
 
