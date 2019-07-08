@@ -25,13 +25,13 @@ module routercc #(parameter address=`TAM_FLIT)(
             .i_rst(i_rst),
             .i_rx(i_rx[i]), 
             .i_clk_rx(i_clk_rx[i]),//nao usa i_clk_rx ainda
-            .o_ack_h(ack_h[i]),
-            .data_ack(data_ack[i]),
+            .i_ack_h(ack_h[i]),
+            .i_data_ack(data_ack[i]),
             .i_data(data_inb[i]),
             .o_credit(o_credit[i]),
-            .h(h[i]),
-            .data_av(data_av[i]),
-            .sender(sender[i]),
+            .o_h(h[i]),
+            .o_data_av(data_av[i]),
+            .o_sender(sender[i]),
             .o_data(data_outb[i]));
             end
     endgenerate
