@@ -18,8 +18,8 @@
 //---------------------------------------------------------
 //-- CONSTANTS DEPENDENTES DO NUMERO DE ROTEADORES
 //---------------------------------------------------------
-`define NUM_X 3
-`define NUM_Y 3
+`define NUM_X 6
+`define NUM_Y 6
 `define NROT (`NUM_X*`NUM_Y)
 `define MIN_X 0
 `define MIN_Y 0
@@ -28,7 +28,7 @@
 //---------------------------------------------------------
 //-- CONSTANTS DEPENDENTES DA PROFUNDIDADE DA FILA
 //---------------------------------------------------------
- `define TAM_BUFFER 20
+ `define TAM_BUFFER 9
 //---------------------------------------------------------
 //-- VARIAVEIS DO NOVO HARDWARE
 //---------------------------------------------------------

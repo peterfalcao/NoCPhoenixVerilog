@@ -47,13 +47,13 @@ NOC::~NOC(){//Deleta o objeto e libera a memoria dos arrays criados
 
 void NOC::tick() {
 	this->mtime++;
-	dut->clock = 0;
+	dut->i_clk = 0;
 	this->sendpackage();
 	dut->eval();
 	if(trace_f) trace_f->dump(this->mtime);
 
 	this->mtime++;
-	dut->clock = 1;
+	dut->i_clk = 1;
 	for(uint32_t i=0;i<num_router;i++){
 		this->has_pkg(i);
 	}
@@ -63,19 +63,19 @@ void NOC::tick() {
 
 void NOC::reset() {// Mtime comentado= reset nao eh mostrado no gtkwave
 	for(uint32_t i = 0; i < 2; i++) {
-		dut->clock = 0;
-    	dut->reset = 1;
+		dut->i_clk = 0;
+    	dut->i_rst = 0;
 		//this->mtime++;
 		dut->eval();
 		if(trace_f) trace_f->dump(this->mtime);
 		
-		dut->clock = 1;
-    	dut->reset = 1;
+		dut->i_clk = 1;
+    	dut->i_rst = 0;
 		//this->mtime++;
 		dut->eval();
 		if(trace_f) trace_f->dump(this->mtime);
 
-    	dut->reset = 0;
+    	dut->i_rst = 1;
 	}
 }
 
@@ -235,7 +235,7 @@ void NOC::insert_data(int flit, int router){
 	if(this->flit_counter[router]>0){
 		aux=pow(2,router);
 		this->rx=this->rx|aux;
-		dut->rxLocal=this->rx;
+		dut->i_rxLocal=this->rx;
 	}
 }
 
@@ -248,41 +248,33 @@ void NOC::disable_rx(int router){
 	aux=pow(2,router);
 	aux=~aux;
 	this->rx=this->rx&aux;
-	dut->rxLocal=this->rx;
+	dut->i_rxLocal=this->rx;
 }
 
 
 void NOC::fillDataOut(int flit, int router){
-	//cout<<"entrou"<<endl;
-	long int mask;
-	int txaux;
-	int sender;
-	txaux=1<<router;
-	mask=0xFFFF;	
-	if(((dut->txLocal)&txaux)!=0){//fazer mascara com cada i
-		
-		this->arrayOut[router][this->pkg_counter_out[router]][this->flit_counter_out[router]]=flit;
-		
-		this->flit_counter_out[router]++;
-	}
-
-	if((this->pkg_counter_out[router]==this->aOut_numpkg[router]-1) && (flit_counter_out[router]>num_flit-1)){
-			//cout<<"entrou1\n";
-			//cout<<"entrou2\n";
-			this->done[router]=1;
-			uint32_t aux=0;
-			for(uint32_t i=0;i<num_router;i++)
-				if(this->done[i]==1)
-					aux=aux+1;
-			if(aux==num_router)
-				this->status=1;
-
+	this->arrayOut[router][this->pkg_counter_out[router]][this->flit_counter_out[router]]=flit;
+	
+	this->flit_counter_out[router]++;
+	//SÓ funciona se todos os roteadores receberem pacotes
+	if((this->pkg_counter_out[router]==this->aOut_numpkg[router]-1) && (flit_counter_out[router]==num_flit)){
+		//cout<<"entrou1\n";
+		//cout<<"entrou2\n";
+		this->done[router]=1;
+		uint32_t aux=0;
+		for(uint32_t i=0;i<num_router;i++)
+			if(this->done[i]==1)
+				aux=aux+1;
+		if(aux==num_router){
+			this->status=1;
 		}
+
+	}
 
 	if(flit_counter_out[router]>num_flit-1){
 		this->flit_counter_out[router]=0;
 		if(this->pkg_counter_out[router]<this->aOut_numpkg[router]){
-			/*if(router==6){
+			/*if(router==5){
 				cout<<"router "<<router<<" possui "<<this->pkg_counter_out[router]<<" pacotes\n";
 				cout<<"n de pkg: "<<aOut_numpkg[router]<<endl;
 				}*/
@@ -294,13 +286,13 @@ void NOC::fillDataOut(int flit, int router){
 	//cout<<"terminou"<<endl;
 }
 
-void NOC::checkPkg(){
+int NOC::checkPkg(){
 	int router;
 	int failpkg;
 	bool sucess;
 	cout<<"*******************Checando a NOC*******************"<<endl;
 	for(uint32_t i=0;i<num_router;i++){
-		cout<<"-----------------Iniciando Checagem do Roteador "<<hex<<rt[i].addr<<" | "<< i <<"-----------------"<<endl;
+		cout<<endl<<"-----------------Iniciando Checagem do Roteador "<<hex<<rt[i].addr<<" | "<< i <<"-----------------"<<endl;
 		sucess =true;
 		failpkg=0;
 		for(uint32_t j=0;j<num_pkg;j++){
@@ -318,22 +310,26 @@ void NOC::checkPkg(){
 				else{
 					x++;
 				}
-			//	cout<<"y= "<<y<<endl;
-			//	cout<<"aOut_numpkg= "<<aOut_numpkg[router]<<endl;
 			}
 			//cout<<"passou do while\n";
 			if(x!=num_flit){
 				sucess= false;
 				failpkg++;
-			//	cout<<"Pacote "<<dec<<j<<" do roteador "<<hex<<rt[i].addr<<" nao chegou no destino, o roteador: "<<hex<<rt[router].addr<<endl;
+				cout<<"Pacote "<<dec<<j<<" do roteador "<<hex<<rt[i].addr<<" nao chegou no destino, o roteador: "<<hex<<rt[router].addr<<endl;
 			}	
 		}
 		//cout<<"passou do for\n";
 		if(sucess)
 			cout<<"Todos os pacotes do roteador "<<hex<<rt[i].addr<<" chegaram ao destino com sucesso"<<endl;
-		else
+		else{
 			cout<<dec<<failpkg<<" Pacote(s) do roteador "<<hex<<rt[i].addr<<" nao chegaram ao destino"<<endl;
+			
+		}
 	}
+	if(sucess)
+		return 0;
+	else
+		return 1;
 	
 }
 

@@ -48,17 +48,26 @@ module routercc #(parameter address=`TAM_FLIT)(
            .o_mux_out(mux_out_t)
         );
         
-    crossbar crossbar(
-        .i_data_av(data_av),
-        .i_free(free),
-        .i_credit(i_credit),
-        .i_data_t(data_in_t),
-        .i_tab_in_t(mux_in_t), 
-        .i_tab_out_t(mux_out_t),
-        .o_data_ack(data_ack),
-        .o_tx(o_tx), 
-        .o_data_t(o_data));   
+    crossbar crossbar
+        (  .i_data_av(data_av),
+           .i_free(free),
+           .i_credit(i_credit),
+           .i_data_t(data_in_t),
+           .i_tab_in_t(mux_in_t), 
+           .i_tab_out_t(mux_out_t),
+           .o_data_ack(data_ack),
+           .o_tx(o_tx), 
+           .o_data_t(o_data)
+        );   
     
+   /* NL_route_preselect #(.NV(2), .NP(5)) rt_presel 
+        (  .credit_valid(i_cntrl_in),
+           .flit_valid(output_used),
+           .select(rt_presel_sel),
+           .clk(i_clk),
+           .rst_n(i_rst) 
+        );
+*/
     always@(*)
         for (aux_var=0;aux_var<`NPORT;aux_var=aux_var+1)
             begin

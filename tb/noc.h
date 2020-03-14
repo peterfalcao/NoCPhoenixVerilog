@@ -11,10 +11,10 @@ using namespace std;
 #include "VNOC.h"
 #include "verilated_vcd_c.h"
 
-#define num_pkg 1200
+#define num_pkg 4
 #define num_flit 9
-#define num_router 9
-#define num_y 3 //altura da NOC
+#define num_router 36
+#define num_y 6 //altura da NOC
 class NOC{
 	VNOC* dut;
 	VerilatedVcdC *trace_f;
@@ -44,7 +44,7 @@ public:
 	void reset();
 	void open_trace(const char* path);
 	void readtraffic(string address);
-	void checkPkg();
+	int checkPkg();
 	void initRouter(string address);
 	void initPkgChecker();
 	int getdata (int i);
